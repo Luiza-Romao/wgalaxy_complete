@@ -4,17 +4,26 @@
 
     <xml name="requirements">
         <requirements>
-            <!-- Core WGCNA and Bioconductor packages -->
-            <requirement type="package" version="1.74">bioconductor-wgcna</requirement>
-            <requirement type="package" version="1.4.5">r-reshape2</requirement>
-            <requirement type="package" version="3.5.0">r-ggplot2</requirement>
-            <requirement type="package" version="0.9.6">r-ggrepel</requirement>
-            <requirement type="package" version="1.0.12">r-pheatmap</requirement>
-            <requirement type="package" version="2.1.0">r-igraph</requirement>
-            <requirement type="package" version="1.1-3">r-rcolorbrewer</requirement>
-            <requirement type="package" version="1.7.4">r-optparse</requirement>
-            <!-- Bioconductor infrastructure -->
-            <requirement type="package" version="1.70.0">bioconductor-limma</requirement>
+            <!-- Base R (sem versão fixa para permitir compatibilidade) -->
+            <requirement type="package">r-base</requirement>
+            
+            <!-- Core WGCNA e Bioconductor (sem versões fixas) -->
+            <requirement type="package">bioconductor-limma</requirement>
+            <requirement type="package">bioconductor-impute</requirement>
+            <requirement type="package">bioconductor-preprocesscore</requirement>
+            
+            <!-- CRAN packages - sem versões fixas -->
+	    <requirement type="package">r-wgcna</requirement>
+            <requirement type="package">r-reshape2</requirement>
+            <requirement type="package">r-ggplot2</requirement>
+            <requirement type="package">r-ggrepel</requirement>
+            <requirement type="package">r-pheatmap</requirement>
+            <requirement type="package">r-igraph</requirement>
+            <requirement type="package">r-rcolorbrewer</requirement>
+            <requirement type="package">r-optparse</requirement>
+            <requirement type="package">r-doparallel</requirement>
+            <requirement type="package">r-foreach</requirement>
+            <requirement type="package">r-matrixstats</requirement>
         </requirements>
     </xml>
 
@@ -74,3 +83,4 @@
         </section>
     </xml>
 </macros>
+

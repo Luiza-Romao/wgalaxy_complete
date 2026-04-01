@@ -134,7 +134,7 @@
     <!-- ================================================================== -->
     <outputs>
 
-        <!-- ---- Plots ---- -->
+        <!-- Plots -->
         <data name="out_plot_clustering" format="png" label="${tool.name}: Sample clustering plot" />
 
         <data name="out_plot_soft" format="png" label="${tool.name}: Soft-threshold selection" />
@@ -151,7 +151,7 @@
 
         <data name="out_plot_deg_bar" format="png" label="${tool.name}: DEG distribution per module" />
 
-        <!-- ---- Tables ---- -->
+        <!-- Tables -->
         <data name="out_table_modules" format="tabular"
             label="${tool.name}: Module gene assignments (all genes)" />
 
@@ -167,7 +167,7 @@
         <data name="out_table_deg_summary" format="tabular"
             label="${tool.name}: DEG overlap per module network" />
 
-        <!-- ---- Cytoscape networks (collection) ---- -->
+        <!-- Cytoscape networks (collection) -->
         <collection name="out_cytoscape" type="list"
             label="${tool.name}: Cytoscape network files">
             <discover_datasets
@@ -176,11 +176,11 @@
                 format="tabular" />
         </collection>
 
-        <!-- ---- RData workspace ---- -->
+        <!-- RData workspace -->
         <data name="out_rdata" format="rdata"
             label="${tool.name}: R workspace (RData)" />
 
-        <!-- ---- Log ---- -->
+        <!-- Log -->
         <data name="out_log" format="txt"
             label="${tool.name}: Analysis log" />
 
