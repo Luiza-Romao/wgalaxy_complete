@@ -1,0 +1,363 @@
+<tool id="wgcna_analysis" name="WGCNA: Weighted Gene Co-expression Network Analysis" version="@TOOL_VERSION@@VERSION_SUFFIX@" profile="21.09">
+
+    <description>Construct gene co-expression networks and identify modules correlated with traits</description>
+
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+
+    <expand macro="requirements" />
+
+    <!-- ================================================================== -->
+    <!-- Command                                                              -->
+    <!-- ================================================================== -->
+    <command detect_errors="exit_code"><![CDATA[
+
+        ## Create working directory for cytoscape outputs (dynamic files)
+        mkdir -p cytoscape_output &&
+
+        Rscript '$__tool_directory__/wgcna.R'
+            --vst_matrix        '$vst_matrix'
+            --sample_info       '$sample_info'
+
+            ## Optional DEG files
+            #if $deg_section.use_degs == "yes":
+                --up_degs   '$deg_section.up_degs'
+                --down_degs '$deg_section.down_degs'
+            #else:
+                --up_degs   'None'
+                --down_degs 'None'
+            #end if
+
+            ## Column names
+            --sample_col    '$col_names.sample_col'
+            --treatment_col '$col_names.treatment_col'
+            #if $col_names.case_label:
+                --case_label '$col_names.case_label'
+            #end if
+
+            ## Filtering
+            --presence_pct    '$filtering.presence_pct'
+            --var_percentile  '$filtering.var_percentile'
+
+            ## Network
+            --soft_power       '$network.soft_power'
+            --network_type     '$network.network_type'
+            --min_module_size  '$network.min_module_size'
+            --merge_cut_height '$network.merge_cut_height'
+            --max_block_size   '$network.max_block_size'
+            --n_threads        '$network.n_threads'
+
+            ## Thresholds
+            --kme_threshold  '$thresholds.kme_threshold'
+            --cor_threshold  '$thresholds.cor_threshold'
+            --tom_percentile '$thresholds.tom_percentile'
+
+            ## Output paths
+            --out_plot_clustering   '$out_plot_clustering'
+            --out_plot_soft         '$out_plot_soft'
+            --out_plot_dendro       '$out_plot_dendro'
+            --out_plot_heatmap_all  '$out_plot_heatmap_all'
+            --out_plot_mm_gs        '$out_plot_mm_gs'
+            --out_plot_hubs         '$out_plot_hubs'
+            --out_plot_heatmap_sel  '$out_plot_heatmap_sel'
+            --out_plot_deg_bar      '$out_plot_deg_bar'
+            --out_table_modules     '$out_table_modules'
+            --out_table_gs_mm       '$out_table_gs_mm'
+            --out_table_hubs        '$out_table_hubs'
+            --out_table_sel_modules '$out_table_sel_modules'
+            --out_table_deg_summary '$out_table_deg_summary'
+            --out_cytoscape_dir     cytoscape_output
+            --out_rdata             '$out_rdata'
+
+        2>&1 | tee '$out_log'
+
+    ]]></command>
+
+    <!-- ================================================================== -->
+    <!-- Inputs                                                               -->
+    <!-- ================================================================== -->
+    <inputs>
+
+        <!-- Primary inputs -->
+        <param name="vst_matrix" type="data" format="tabular,tsv,txt"
+            label="VST-normalized expression matrix"
+            help="Tab-separated file: first column = gene IDs (row names), remaining columns = samples. Header must contain sample IDs." />
+
+        <param name="sample_info" type="data" format="tabular,tsv,txt"
+            label="Sample metadata file"
+            help="Tab-separated file with at minimum two columns: SampleID and Treatment (column names are configurable below)." />
+
+        <!-- Column name configuration -->
+        <section name="col_names" title="Column Names in Metadata" expanded="false">
+            <param name="sample_col" type="text" value="SampleID"
+                label="Sample ID column name"
+                help="Column in metadata containing sample identifiers matching expression matrix headers." />
+            <param name="treatment_col" type="text" value="Treatment"
+                label="Treatment/group column name"
+                help="Column in metadata containing group labels (e.g. Induced, Control)." />
+            <param name="case_label" type="text" value="" optional="true"
+                label="Case group label (optional)"
+                help="Label of the 'case' group for trait encoding (e.g. 'Induced'). Auto-detected if left blank." />
+        </section>
+
+        <!-- Gene filtering -->
+        <expand macro="filtering_params" />
+
+        <!-- Network construction -->
+        <expand macro="network_params" />
+
+        <!-- Post-processing thresholds -->
+        <expand macro="threshold_params" />
+
+        <!-- Optional DEG analysis -->
+        <conditional name="deg_section">
+            <param name="use_degs" type="select" label="Include DEG overlap analysis?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes — provide DEG gene lists</option>
+            </param>
+            <when value="no" />
+            <when value="yes">
+                <param name="up_degs" type="data" format="tabular,tsv,txt"
+                    label="Up-regulated gene list"
+                    help="Tab-separated file, no header required. First column = gene IDs (must match IDs in the expression matrix)." />
+                <param name="down_degs" type="data" format="tabular,tsv,txt"
+                    label="Down-regulated gene list"
+                    help="Tab-separated file, no header required. First column = gene IDs." />
+            </when>
+        </conditional>
+
+    </inputs>
+
+    <!-- ================================================================== -->
+    <!-- Outputs                                                              -->
+    <!-- ================================================================== -->
+    <outputs>
+
+        <!-- ---- Plots ---- -->
+        <data name="out_plot_clustering" format="png" label="${tool.name}: Sample clustering plot" />
+
+        <data name="out_plot_soft" format="png" label="${tool.name}: Soft-threshold selection" />
+
+        <data name="out_plot_dendro" format="png" label="${tool.name}: Gene dendrogram + module colors" />
+
+        <data name="out_plot_heatmap_all" format="png" label="${tool.name}: Full module-trait heatmap" />
+
+        <data name="out_plot_mm_gs" format="png" label="${tool.name}: MM vs GS (top module)" />
+
+        <data name="out_plot_hubs" format="png" label="${tool.name}: Hub gene identification (top module)" />
+
+        <data name="out_plot_heatmap_sel" format="png" label="${tool.name}: Selected modules heatmap" />
+
+        <data name="out_plot_deg_bar" format="png" label="${tool.name}: DEG distribution per module" />
+
+        <!-- ---- Tables ---- -->
+        <data name="out_table_modules" format="tabular"
+            label="${tool.name}: Module gene assignments (all genes)" />
+
+        <data name="out_table_gs_mm" format="tabular"
+            label="${tool.name}: Gene significance and module membership (top module)" />
+
+        <data name="out_table_hubs" format="tabular"
+            label="${tool.name}: Hub genes (top module)" />
+
+        <data name="out_table_sel_modules" format="tabular"
+            label="${tool.name}: Selected modules summary" />
+
+        <data name="out_table_deg_summary" format="tabular"
+            label="${tool.name}: DEG overlap per module network" />
+
+        <!-- ---- Cytoscape networks (collection) ---- -->
+        <collection name="out_cytoscape" type="list"
+            label="${tool.name}: Cytoscape network files">
+            <discover_datasets
+                pattern="(?P&lt;name&gt;.+)\.txt"
+                directory="cytoscape_output"
+                format="tabular" />
+        </collection>
+
+        <!-- ---- RData workspace ---- -->
+        <data name="out_rdata" format="rdata"
+            label="${tool.name}: R workspace (RData)" />
+
+        <!-- ---- Log ---- -->
+        <data name="out_log" format="txt"
+            label="${tool.name}: Analysis log" />
+
+    </outputs>
+
+    <!-- ================================================================== -->
+    <!-- Tests                                                                -->
+    <!-- ================================================================== -->
+    <tests>
+        <test expect_num_outputs="14">
+            <param name="vst_matrix"  value="test_vst.tabular" />
+            <param name="sample_info" value="test_samples.tabular" />
+            <section name="col_names">
+                <param name="sample_col"    value="SampleID" />
+                <param name="treatment_col" value="Treatment" />
+                <param name="case_label"    value="Induced" />
+            </section>
+            <section name="filtering">
+                <param name="presence_pct"   value="0.5" />
+                <param name="var_percentile" value="50" />
+            </section>
+            <section name="network">
+                <param name="soft_power"       value="6" />
+                <param name="network_type"     value="signed" />
+                <param name="min_module_size"  value="10" />
+                <param name="merge_cut_height" value="0.25" />
+                <param name="max_block_size"   value="2000" />
+                <param name="n_threads"        value="1" />
+            </section>
+            <section name="thresholds">
+                <param name="kme_threshold"  value="0.80" />
+                <param name="cor_threshold"  value="0.50" />
+                <param name="tom_percentile" value="0.90" />
+            </section>
+            <conditional name="deg_section">
+                <param name="use_degs" value="no" />
+            </conditional>
+            <output name="out_table_modules">
+                <assert_contents>
+                    <has_text text="Gene" />
+                    <has_text text="Module" />
+                </assert_contents>
+            </output>
+            <output name="out_table_sel_modules">
+                <assert_contents>
+                    <has_text text="ModuleColor" />
+                </assert_contents>
+            </output>
+        </test>
+    </tests>
+
+    <!-- ================================================================== -->
+    <!-- Help                                                                 -->
+    <!-- ================================================================== -->
+    <help><![CDATA[
+
+.. class:: infomark
+
+**What it does**
+
+This tool performs **Weighted Gene Co-expression Network Analysis (WGCNA)** on
+VST-normalized RNA-seq expression data. It constructs a gene co-expression network,
+identifies modules of co-regulated genes, correlates modules with experimental traits,
+and exports hub genes and Cytoscape-ready network files.
+
+-----
+
+**Pipeline overview**
+
+1. **Data loading** — VST expression matrix + sample metadata
+2. **Gene filtering** — presence filter (non-zero in ≥ X% of samples) + variance filter
+3. **Trait matrix** — binary encoding of the treatment variable
+4. **Sample clustering** — hierarchical clustering to check for outliers
+5. **Soft-threshold selection** — scale-free topology fit to choose β
+6. **Network construction** — ``blockwiseModules`` with signed/unsigned adjacency
+7. **Module-trait correlation** — Pearson r between module eigengenes and trait
+8. **Gene significance & module membership** — GS and kME for the top module
+9. **Hub genes** — top 10% most connected genes in the top module
+10. **kME filtering** — keep only core module members (|kME| > threshold)
+11. **Cytoscape export** — edge + node tables for all high-correlation modules
+12. **DEG overlap** *(optional)* — overlap between network genes and DEG lists
+
+-----
+
+**Input files**
+
++-----------------------------+--------------------------------------------------+
+| **VST matrix**              | TSV, genes × samples. First column = gene IDs.   |
+|                             | Header must contain sample IDs.                   |
++-----------------------------+--------------------------------------------------+
+| **Sample metadata**         | TSV with at least two columns:                   |
+|                             | ``SampleID`` and ``Treatment`` (configurable).    |
++-----------------------------+--------------------------------------------------+
+| **Up/down DEG lists**       | *(Optional)* TSV, first column = gene IDs.        |
+|                             | No header required.                               |
++-----------------------------+--------------------------------------------------+
+
+**Example metadata file** ::
+
+    SampleID        Treatment
+    Sample_A_1      Induced
+    Sample_A_2      Induced
+    Sample_A_3      Induced
+    Sample_B_1      Control
+    Sample_B_2      Control
+    Sample_B_3      Control
+
+-----
+
+**Key parameters**
+
+- **Soft-thresholding power (β):** Set to 0 for automatic detection (recommended).
+  Inspect the soft-threshold plot if auto-detection fails.
+- **Network type:** ``signed`` preserves the direction of co-expression;
+  ``unsigned`` treats up- and down-regulation equivalently.
+- **Minimum module size:** Smaller values yield more, smaller modules.
+- **kME threshold:** Genes with |kME| > threshold are considered core module members.
+- **Correlation threshold:** Modules with |r| ≥ threshold are selected for Cytoscape export.
+
+-----
+
+**Outputs**
+
++------------------------------------------+------------------------------------+
+| Sample clustering plot                   | Outlier detection                  |
++------------------------------------------+------------------------------------+
+| Soft-threshold plot                      | Power selection guidance           |
++------------------------------------------+------------------------------------+
+| Gene dendrogram                          | Module color assignments           |
++------------------------------------------+------------------------------------+
+| Full module-trait heatmap                | All modules × all traits           |
++------------------------------------------+------------------------------------+
+| MM vs GS scatter plot                    | Top module relevance validation    |
++------------------------------------------+------------------------------------+
+| Hub gene plot                            | Connectivity vs kME                |
++------------------------------------------+------------------------------------+
+| Selected modules heatmap                 | High-correlation modules           |
++------------------------------------------+------------------------------------+
+| DEG barplot *(optional)*                 | DEG distribution per module        |
++------------------------------------------+------------------------------------+
+| Module gene assignments (TSV)            | All genes with module colors       |
++------------------------------------------+------------------------------------+
+| GS/MM table (TSV)                        | Top module detailed statistics     |
++------------------------------------------+------------------------------------+
+| Hub genes table (TSV)                    | Hub gene list with connectivity    |
++------------------------------------------+------------------------------------+
+| Selected modules summary (TSV)           | Correlation table for export mods  |
++------------------------------------------+------------------------------------+
+| DEG network summary (TSV) *(optional)*   | DEG counts per network module      |
++------------------------------------------+------------------------------------+
+| Cytoscape networks (collection)          | Edge + node files per module       |
++------------------------------------------+------------------------------------+
+| RData workspace                          | All objects for downstream use     |
++------------------------------------------+------------------------------------+
+
+-----
+
+**Importing Cytoscape files**
+
+The ``edges_*_kMEfilt.txt`` and ``nodes_*_kMEfilt.txt`` files can be imported
+directly into `Cytoscape <https://cytoscape.org/>`_ using
+**File → Import → Network from File** (edges) and then
+**File → Import → Table from File** (nodes).
+
+-----
+
+**References**
+
+- Langfelder P, Horvath S. WGCNA: an R package for weighted gene co-expression
+  network analysis. *BMC Bioinformatics* 2008, 9:559.
+  https://doi.org/10.1186/1471-2105-9-559
+- Zhang B, Horvath S. A general framework for weighted gene co-expression network
+  analysis. *Statistical Applications in Genetics and Molecular Biology* 2005.
+  https://doi.org/10.2202/1544-6115.1128
+
+    ]]></help>
+
+    <expand macro="citations" />
+
+</tool>

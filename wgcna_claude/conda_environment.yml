@@ -1,0 +1,25 @@
+name: wgcna_galaxy
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  # R base
+  - r-base>=4.3.0
+  # WGCNA and core dependencies (bioconda)
+  - bioconductor-wgcna=1.74
+  - bioconductor-limma>=3.56.0
+  # CRAN packages
+  - r-ggplot2>=3.4.0
+  - r-ggrepel>=0.9.3
+  - r-reshape2>=1.4.4
+  - r-pheatmap>=1.0.12
+  - r-igraph>=1.5.0
+  - r-rcolorbrewer>=1.1-3
+  - r-optparse>=1.7.3
+  # WGCNA implicit dependencies (usually pulled in but listed for clarity)
+  - r-fastcluster>=1.2.6
+  - bioconductor-go.db>=3.17.0
+  - bioconductor-annotationdbi>=1.62.0
+  - bioconductor-impute>=1.74.0
+  - bioconductor-preprocesscore>=1.62.0
