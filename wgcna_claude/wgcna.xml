@@ -112,21 +112,22 @@
 
         <!-- Optional DEG analysis -->
         <conditional name="deg_section">
-            <param name="use_degs" type="select" label="Include DEG overlap analysis?">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes — provide DEG gene lists</option>
-            </param>
-            <when value="no" />
-            <when value="yes">
-                <param name="up_degs" type="data" format="tabular,tsv,txt"
-                    label="Up-regulated gene list"
-                    help="Tab-separated file, no header required. First column = gene IDs (must match IDs in the expression matrix)." />
-                <param name="down_degs" type="data" format="tabular,tsv,txt"
-                    label="Down-regulated gene list"
-                    help="Tab-separated file, no header required. First column = gene IDs." />
-            </when>
-        </conditional>
-
+    <param name="use_degs" type="select" label="Include DEG overlap analysis?">
+        <option value="no" selected="true">No</option>
+        <option value="yes">Yes — provide DEG gene lists</option>
+    </param>
+    <when value="no" />
+    <when value="yes">
+        <param name="up_degs" type="data" format="txt,tabular,csv"
+            accept=".txt,.tsv,.csv,.tabular"
+	    label="Up-regulated gene list"
+            help="File containing up-regulated gene IDs. Supported formats: TXT, TSV/TABULAR, CSV. First column must contain gene IDs. No header required." />
+        <param name="down_degs" type="data" format="txt,tabular,csv"
+            accept=".txt,.tsv,.csv,.tabular"
+	    label="Down-regulated gene list"
+            help="File containing down-regulated gene IDs. Supported formats: TXT, TSV/TABULAR, CSV. First column must contain gene IDs. No header required." />
+    </when>
+</conditional>
     </inputs>
 
     <!-- ================================================================== -->
