@@ -1,0 +1,10 @@
+# comando para usar o branch confiavel do galaxy
+planemo serve --host 0.0.0.0 --port 8081 --galaxy_branch release_24.0
+
+# comando para apagar o historico do planemo
+rm -rf ~/.planemo/gx_venv_3/
+
+# comando para utilizar o ambiente conda funcional
+conda activate planemo_env
+
+
