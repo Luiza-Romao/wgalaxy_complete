@@ -1,0 +1,7 @@
+sample	condition	group
+sample1	control	A
+sample2	control	A
+sample3	treatment	B
+sample4	treatment	B
+sample5	control	A
+EOF
