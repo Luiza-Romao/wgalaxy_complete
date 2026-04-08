@@ -1,0 +1,167 @@
+<macros>
+    <token name="@TOOL_VERSION@">1.74</token>
+    <token name="@VERSION_SUFFIX@">+galaxy2</token>
+
+    <!-- ================================================================== -->
+    <!-- Requirements                                                         -->
+    <!-- ================================================================== -->
+    <xml name="requirements">
+        <requirements>
+            <!-- WGCNA + dependencies -->
+            <requirement type="package" version="1.74">bioconductor-wgcna</requirement>
+            <requirement type="package" version="1.70.0">bioconductor-limma</requirement>
+            <!-- CRAN -->
+            <requirement type="package" version="3.5.0">r-ggplot2</requirement>
+            <requirement type="package" version="0.9.6">r-ggrepel</requirement>
+            <requirement type="package" version="1.4.5">r-reshape2</requirement>
+            <requirement type="package" version="1.0.12">r-pheatmap</requirement>
+            <requirement type="package" version="2.1.0">r-igraph</requirement>
+            <requirement type="package" version="1.1-3">r-rcolorbrewer</requirement>
+            <requirement type="package" version="1.7.4">r-optparse</requirement>
+            <!-- Enrichment packages (always installed; only loaded if requested) -->
+            <requirement type="package" version="4.10.0">bioconductor-clusterprofiler</requirement>
+            <requirement type="package" version="1.24.0">bioconductor-enrichplot</requirement>
+        </requirements>
+    </xml>
+
+    <!-- ================================================================== -->
+    <!-- Citations                                                            -->
+    <!-- ================================================================== -->
+    <xml name="citations">
+        <citations>
+            <!-- WGCNA -->
+            <citation type="doi">10.1186/1471-2105-9-559</citation>
+            <!-- Module preservation -->
+            <citation type="doi">10.1371/journal.pcbi.1001057</citation>
+            <!-- clusterProfiler -->
+            <citation type="doi">10.1016/j.xinn.2021.100141</citation>
+        </citations>
+    </xml>
+
+    <!-- ================================================================== -->
+    <!-- Reusable parameter blocks                                            -->
+    <!-- ================================================================== -->
+    <xml name="filtering_params">
+        <section name="filtering" title="Gene Filtering" expanded="true">
+            <param name="presence_pct" type="float" value="0.60" min="0.0" max="1.0"
+                label="Minimum presence fraction"
+                help="Retain genes expressed (non-zero) in at least this fraction of samples. Default: 0.60" />
+            <param name="var_percentile" type="integer" value="40" min="0" max="99"
+                label="Variance percentile cutoff"
+                help="Remove genes below this variance percentile. Default: 40" />
+        </section>
+    </xml>
+
+    <xml name="network_params">
+        <section name="network" title="Network Construction" expanded="true">
+            <param name="soft_power" type="integer" value="0" min="0" max="30"
+                label="Soft-thresholding power β (0 = auto-detect)"
+                help="Network adjacency power. 0 = automatic from scale-free topology fit. Inspect the soft-threshold plot if auto fails." />
+            <param name="network_type" type="select" label="Network type">
+                <option value="signed" selected="true">Signed — preserves co-expression direction</option>
+                <option value="unsigned">Unsigned — treats up and down equally</option>
+            </param>
+            <param name="min_module_size" type="integer" value="50" min="5" max="2000"
+                label="Minimum module size"
+                help="Smallest permitted co-expression module (number of genes). Default: 50" />
+            <param name="merge_cut_height" type="float" value="0.25" min="0.0" max="1.0"
+                label="Module merging cut height"
+                help="Modules with eigengene correlation ≥ (1 − height) are merged. Default: 0.25" />
+            <param name="max_block_size" type="integer" value="5000" min="500" max="30000"
+                label="Maximum block size"
+                help="Max genes per computational block. Reduce if RAM is limited. Default: 5000" />
+            <param name="n_threads" type="integer" value="4" min="1" max="64"
+                label="Threads"
+                help="Parallel threads for WGCNA. Default: 4" />
+        </section>
+    </xml>
+
+    <xml name="threshold_params">
+        <section name="thresholds" title="Post-processing Thresholds" expanded="true">
+            <param name="kme_threshold" type="float" value="0.80" min="0.0" max="1.0"
+                label="|kME| threshold for core module genes"
+                help="Only genes with |module membership| above this value are exported to Cytoscape and used in enrichment. Default: 0.80" />
+            <param name="cor_threshold" type="float" value="0.60" min="0.0" max="1.0"
+                label="Module-trait |r| threshold"
+                help="Only modules with |Pearson r| ≥ this value are selected for export and enrichment. Default: 0.60" />
+            <param name="tom_percentile" type="float" value="0.95" min="0.50" max="0.99"
+                label="TOM edge percentile cutoff"
+                help="Only edges in the top (1 − percentile) of TOM weight are exported. Default: 0.95" />
+        </section>
+    </xml>
+
+    <!-- ── NEW: Enrichment parameters ────────────────────────────────────── -->
+    <xml name="enrichment_params">
+        <section name="enrich_params" title="Enrichment Settings" expanded="true">
+            <param name="orgdb_package" type="select"
+                label="Organism annotation database (OrgDb)"
+                help="Bioconductor OrgDb package for GO annotation. Select the organism matching your data.">
+                <option value="org.Hs.eg.db">Homo sapiens (org.Hs.eg.db)</option>
+                <option value="org.Mm.eg.db">Mus musculus (org.Mm.eg.db)</option>
+                <option value="org.Rn.eg.db">Rattus norvegicus (org.Rn.eg.db)</option>
+                <option value="org.At.tair.db">Arabidopsis thaliana (org.At.tair.db)</option>
+                <option value="org.Sc.sgd.db">Saccharomyces cerevisiae (org.Sc.sgd.db)</option>
+                <option value="org.Ce.eg.db">Caenorhabditis elegans (org.Ce.eg.db)</option>
+                <option value="org.Dm.eg.db">Drosophila melanogaster (org.Dm.eg.db)</option>
+                <option value="org.Dr.eg.db">Danio rerio (org.Dr.eg.db)</option>
+                <option value="org.Ss.eg.db">Sus scrofa (org.Ss.eg.db)</option>
+                <option value="org.Bt.eg.db">Bos taurus (org.Bt.eg.db)</option>
+                <option value="org.Gg.eg.db">Gallus gallus (org.Gg.eg.db)</option>
+                <option value="org.Xl.eg.db">Xenopus laevis (org.Xl.eg.db)</option>
+                <option value="org.Mmu.eg.db">Macaca mulatta (org.Mmu.eg.db)</option>
+                <option value="custom">Custom (type package name below)</option>
+            </param>
+            <param name="orgdb_custom" type="text" value="" optional="true"
+                label="Custom OrgDb package name"
+                help="Only used when 'Custom' is selected above. E.g. org.Zm.eg.db for maize." />
+            <param name="gene_id_type" type="select"
+                label="Gene identifier type in your data"
+                help="The type of gene IDs in your expression matrix row names.">
+                <option value="SYMBOL" selected="true">Gene symbol (e.g. GAPDH, AT1G01010)</option>
+                <option value="ENSEMBL">Ensembl gene ID (e.g. ENSG00000141510)</option>
+                <option value="ENTREZID">Entrez / NCBI gene ID (numeric)</option>
+                <option value="TAIR">TAIR ID (Arabidopsis — e.g. AT1G01010)</option>
+                <option value="UNIPROT">UniProt accession</option>
+                <option value="REFSEQ">RefSeq accession</option>
+            </param>
+            <param name="run_kegg" type="boolean" truevalue="yes" falsevalue="no"
+                checked="false"
+                label="Also run KEGG pathway enrichment"
+                help="Runs enrichKEGG in addition to GO. Requires internet access and a KEGG organism code." />
+            <param name="kegg_organism" type="text" value="" optional="true"
+                label="KEGG organism code"
+                help="3-4 letter KEGG code, e.g. hsa (human), mmu (mouse), ath (Arabidopsis), sce (yeast), dme (Drosophila)." />
+            <param name="enrich_pval_cut" type="float" value="0.05" min="0.0" max="1.0"
+                label="Adjusted p-value cutoff"
+                help="Terms with adjusted p-value above this are discarded. Default: 0.05" />
+            <param name="enrich_qval_cut" type="float" value="0.20" min="0.0" max="1.0"
+                label="q-value cutoff"
+                help="Additional q-value filter. Default: 0.20" />
+            <param name="enrich_min_gs" type="integer" value="10" min="2" max="200"
+                label="Minimum gene-set size"
+                help="Discard GO terms annotating fewer than this many genes. Default: 10" />
+            <param name="enrich_max_gs" type="integer" value="500" min="20" max="5000"
+                label="Maximum gene-set size"
+                help="Discard GO terms annotating more than this many genes. Default: 500" />
+        </section>
+    </xml>
+
+    <!-- ── NEW: Module preservation parameters ───────────────────────────── -->
+    <xml name="preservation_params">
+        <section name="pres_params" title="Module Preservation Settings" expanded="true">
+            <param name="pres_n_perms" type="integer" value="200" min="50" max="1000"
+                label="Number of permutations"
+                help="More permutations → more accurate Z-scores, but longer runtime. Default: 200" />
+            <param name="pres_max_genes" type="integer" value="2000" min="200" max="20000"
+                label="Maximum genes for preservation test"
+                help="Genes per module are subsampled to this limit. Reduces runtime. Default: 2000" />
+            <param name="pres_random_seed" type="integer" value="12345"
+                label="Random seed"
+                help="For reproducibility of permutation results. Default: 12345" />
+            <param name="ref_sample_col" type="text" value="SampleID"
+                label="Reference SampleID column name" />
+            <param name="ref_treatment_col" type="text" value="Treatment"
+                label="Reference Treatment column name" />
+        </section>
+    </xml>
+</macros>

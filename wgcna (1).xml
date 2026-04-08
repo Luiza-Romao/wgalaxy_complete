@@ -1,0 +1,529 @@
+<tool id="wgcna_analysis" name="WGCNA: Weighted Gene Co-expression Network Analysis" version="@TOOL_VERSION@@VERSION_SUFFIX@" profile="21.09">
+
+    <description>Co-expression modules, GO enrichment, and cross-condition network preservation</description>
+
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+
+    <expand macro="requirements" />
+
+    <!-- ================================================================== -->
+    <!-- Command                                                              -->
+    <!-- ================================================================== -->
+    <command detect_errors="exit_code"><![CDATA[
+
+        mkdir -p cytoscape_output enrichment_output &&
+
+        ## Resolve OrgDb package name (dropdown or custom text)
+        #set $orgdb_resolved = str($enrich_section.enrich_params.orgdb_package)
+        #if str($enrich_section.enrich_params.orgdb_package) == "custom":
+            #set $orgdb_resolved = str($enrich_section.enrich_params.orgdb_custom)
+        #end if
+
+        Rscript '$__tool_directory__/wgcna.R'
+
+            ## ── Required ──────────────────────────────────────────────────
+            --vst_matrix    '$vst_matrix'
+            --sample_info   '$sample_info'
+
+            ## ── Column names ──────────────────────────────────────────────
+            --sample_col    '$col_names.sample_col'
+            --treatment_col '$col_names.treatment_col'
+            #if str($col_names.case_label):
+                --case_label '$col_names.case_label'
+            #end if
+
+            ## ── Filtering ─────────────────────────────────────────────────
+            --presence_pct    '$filtering.presence_pct'
+            --var_percentile  '$filtering.var_percentile'
+
+            ## ── Network ───────────────────────────────────────────────────
+            --soft_power       '$network.soft_power'
+            --network_type     '$network.network_type'
+            --min_module_size  '$network.min_module_size'
+            --merge_cut_height '$network.merge_cut_height'
+            --max_block_size   '$network.max_block_size'
+            --n_threads        '$network.n_threads'
+
+            ## ── Thresholds ────────────────────────────────────────────────
+            --kme_threshold  '$thresholds.kme_threshold'
+            --cor_threshold  '$thresholds.cor_threshold'
+            --tom_percentile '$thresholds.tom_percentile'
+
+            ## ── DEG overlap (optional) ────────────────────────────────────
+            #if $deg_section.use_degs == "yes":
+                --up_degs   '$deg_section.up_degs'
+                --down_degs '$deg_section.down_degs'
+            #else:
+                --up_degs   None
+                --down_degs None
+            #end if
+
+            ## ── Gene Ontology / Enrichment (optional) ─────────────────────
+            #if $enrich_section.run_enrichment == "yes":
+                --run_enrichment yes
+                --orgdb_package  '$orgdb_resolved'
+                --gene_id_type   '$enrich_section.enrich_params.gene_id_type'
+                --enrich_pval_cut '$enrich_section.enrich_params.enrich_pval_cut'
+                --enrich_qval_cut '$enrich_section.enrich_params.enrich_qval_cut'
+                --enrich_min_gs   '$enrich_section.enrich_params.enrich_min_gs'
+                --enrich_max_gs   '$enrich_section.enrich_params.enrich_max_gs'
+                #if $enrich_section.enrich_params.run_kegg:
+                    --run_kegg yes
+                    --kegg_organism '$enrich_section.enrich_params.kegg_organism'
+                #else:
+                    --run_kegg no
+                #end if
+                --out_enrich_dir       enrichment_output
+                --out_table_go_summary '$out_table_go_summary'
+                --out_plot_go_dot      '$out_plot_go_dot'
+                --out_plot_go_bar      '$out_plot_go_bar'
+            #else:
+                --run_enrichment no
+                --orgdb_package  none
+                --out_enrich_dir       enrichment_output
+                --out_table_go_summary '$out_table_go_summary'
+                --out_plot_go_dot      '$out_plot_go_dot'
+                --out_plot_go_bar      '$out_plot_go_bar'
+            #end if
+
+            ## ── Module Preservation / Z-summary (optional) ────────────────
+            #if $pres_section.run_preservation == "yes":
+                --run_preservation yes
+                --ref_vst_matrix    '$pres_section.ref_vst_matrix'
+                --ref_sample_info   '$pres_section.ref_sample_info'
+                --ref_sample_col    '$pres_section.pres_params.ref_sample_col'
+                --ref_treatment_col '$pres_section.pres_params.ref_treatment_col'
+                --pres_n_perms      '$pres_section.pres_params.pres_n_perms'
+                --pres_max_genes    '$pres_section.pres_params.pres_max_genes'
+                --pres_random_seed  '$pres_section.pres_params.pres_random_seed'
+            #else:
+                --run_preservation no
+                --ref_vst_matrix    None
+                --ref_sample_info   None
+            #end if
+            --out_table_preservation '$out_table_preservation'
+            --out_plot_zsummary      '$out_plot_zsummary'
+            --out_plot_pres_heatmap  '$out_plot_pres_heatmap'
+            --out_table_pres_class   '$out_table_pres_class'
+
+            ## ── Core outputs ──────────────────────────────────────────────
+            --out_plot_clustering   '$out_plot_clustering'
+            --out_plot_soft         '$out_plot_soft'
+            --out_plot_dendro       '$out_plot_dendro'
+            --out_plot_heatmap_all  '$out_plot_heatmap_all'
+            --out_plot_mm_gs        '$out_plot_mm_gs'
+            --out_plot_hubs         '$out_plot_hubs'
+            --out_plot_heatmap_sel  '$out_plot_heatmap_sel'
+            --out_plot_deg_bar      '$out_plot_deg_bar'
+            --out_table_modules     '$out_table_modules'
+            --out_table_gs_mm       '$out_table_gs_mm'
+            --out_table_hubs        '$out_table_hubs'
+            --out_table_sel_modules '$out_table_sel_modules'
+            --out_table_deg_summary '$out_table_deg_summary'
+            --out_cytoscape_dir     cytoscape_output
+            --out_rdata             '$out_rdata'
+
+        2>&1 | tee '$out_log'
+
+    ]]></command>
+
+    <!-- ================================================================== -->
+    <!-- Inputs                                                               -->
+    <!-- ================================================================== -->
+    <inputs>
+
+        <!-- Primary inputs -->
+        <param name="vst_matrix" type="data" format="tabular,tsv,txt"
+            label="VST-normalized expression matrix"
+            help="Tab-separated; first column = gene IDs. Remaining columns = samples; header = sample IDs." />
+
+        <param name="sample_info" type="data" format="tabular,tsv,txt"
+            label="Sample metadata"
+            help="Tab-separated with at minimum SampleID and Treatment columns (configurable below)." />
+
+        <!-- Column configuration -->
+        <section name="col_names" title="Metadata Column Names" expanded="false">
+            <param name="sample_col"    type="text" value="SampleID"
+                label="Sample ID column" />
+            <param name="treatment_col" type="text" value="Treatment"
+                label="Treatment / group column" />
+            <param name="case_label"    type="text" value="" optional="true"
+                label="Case group label (optional)"
+                help="The group to encode as 1 in the trait vector (e.g. 'Induced'). Auto-detected if blank." />
+        </section>
+
+        <!-- Gene filtering -->
+        <expand macro="filtering_params" />
+
+        <!-- Network construction -->
+        <expand macro="network_params" />
+
+        <!-- Thresholds -->
+        <expand macro="threshold_params" />
+
+        <!-- ── DEG overlap (optional) ─────────────────────────────────── -->
+        <conditional name="deg_section">
+            <param name="use_degs" type="select" label="DEG overlap analysis">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes — provide DEG lists</option>
+            </param>
+            <when value="no" />
+            <when value="yes">
+                <param name="up_degs" type="data" format="tabular,tsv,txt"
+                    label="Up-regulated gene list"
+                    help="No header required. First column = gene IDs matching the expression matrix." />
+                <param name="down_degs" type="data" format="tabular,tsv,txt"
+                    label="Down-regulated gene list" />
+            </when>
+        </conditional>
+
+        <!-- ── Gene Ontology / Enrichment (NEW) ──────────────────────── -->
+        <conditional name="enrich_section">
+            <param name="run_enrichment" type="select"
+                label="Gene Ontology / functional enrichment analysis">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes — run GO enrichment on selected modules</option>
+            </param>
+            <when value="no" />
+            <when value="yes">
+                <expand macro="enrichment_params" />
+            </when>
+        </conditional>
+
+        <!-- ── Module Preservation / Z-summary (NEW) ─────────────────── -->
+        <conditional name="pres_section">
+            <param name="run_preservation" type="select"
+                label="Module preservation analysis (Z-summary)">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes — compare modules to a reference network</option>
+            </param>
+            <when value="no" />
+            <when value="yes">
+                <param name="ref_vst_matrix" type="data" format="tabular,tsv,txt"
+                    label="Reference VST expression matrix"
+                    help="The 'reference' or 'healthy' dataset against which module preservation is tested. Same format as the main VST matrix." />
+                <param name="ref_sample_info" type="data" format="tabular,tsv,txt"
+                    label="Reference sample metadata"
+                    help="Metadata for the reference dataset (same format as the main metadata)." />
+                <expand macro="preservation_params" />
+            </when>
+        </conditional>
+
+    </inputs>
+
+    <!-- ================================================================== -->
+    <!-- Outputs                                                              -->
+    <!-- ================================================================== -->
+    <outputs>
+
+        <!-- ── Core plots ── -->
+        <data name="out_plot_clustering"  format="png"
+            label="${tool.name}: Sample clustering" />
+        <data name="out_plot_soft"        format="png"
+            label="${tool.name}: Soft-threshold selection" />
+        <data name="out_plot_dendro"      format="png"
+            label="${tool.name}: Gene dendrogram + module colors" />
+        <data name="out_plot_heatmap_all" format="png"
+            label="${tool.name}: Full module-trait heatmap" />
+        <data name="out_plot_mm_gs"       format="png"
+            label="${tool.name}: MM vs GS (top module)" />
+        <data name="out_plot_hubs"        format="png"
+            label="${tool.name}: Hub gene identification" />
+        <data name="out_plot_heatmap_sel" format="png"
+            label="${tool.name}: Selected modules heatmap" />
+        <data name="out_plot_deg_bar"     format="png"
+            label="${tool.name}: DEG distribution per module" />
+
+        <!-- ── Core tables ── -->
+        <data name="out_table_modules"     format="tabular"
+            label="${tool.name}: Module gene assignments" />
+        <data name="out_table_gs_mm"       format="tabular"
+            label="${tool.name}: Gene significance and module membership" />
+        <data name="out_table_hubs"        format="tabular"
+            label="${tool.name}: Hub genes (top module)" />
+        <data name="out_table_sel_modules" format="tabular"
+            label="${tool.name}: Selected modules summary" />
+        <data name="out_table_deg_summary" format="tabular"
+            label="${tool.name}: DEG overlap per module" />
+
+        <!-- ── Cytoscape networks ── -->
+        <collection name="out_cytoscape" type="list"
+            label="${tool.name}: Cytoscape network files">
+            <discover_datasets pattern="(?P&lt;name&gt;.+)\.txt"
+                directory="cytoscape_output" format="tabular" />
+        </collection>
+
+        <!-- ── Enrichment outputs (NEW) ── -->
+        <data name="out_table_go_summary" format="tabular"
+            label="${tool.name}: GO enrichment — combined summary" />
+        <data name="out_plot_go_dot" format="png"
+            label="${tool.name}: GO enrichment — dot plot" />
+        <data name="out_plot_go_bar" format="png"
+            label="${tool.name}: GO enrichment — bar plot" />
+        <collection name="out_enrich_per_module" type="list"
+            label="${tool.name}: GO/KEGG enrichment per module">
+            <discover_datasets pattern="(?P&lt;name&gt;.+)\.tsv"
+                directory="enrichment_output" format="tabular" />
+        </collection>
+
+        <!-- ── Preservation outputs (NEW) ── -->
+        <data name="out_table_preservation" format="tabular"
+            label="${tool.name}: Module preservation — full statistics" />
+        <data name="out_table_pres_class"   format="tabular"
+            label="${tool.name}: Module preservation — classification" />
+        <data name="out_plot_zsummary"      format="png"
+            label="${tool.name}: Z-summary scatter plot" />
+        <data name="out_plot_pres_heatmap"  format="png"
+            label="${tool.name}: Preservation statistics heatmap" />
+
+        <!-- ── Workspace + log ── -->
+        <data name="out_rdata" format="rdata"
+            label="${tool.name}: R workspace (RData)" />
+        <data name="out_log"   format="txt"
+            label="${tool.name}: Analysis log" />
+
+    </outputs>
+
+    <!-- ================================================================== -->
+    <!-- Tests                                                                -->
+    <!-- ================================================================== -->
+    <tests>
+        <test expect_num_outputs="20">
+            <param name="vst_matrix"  value="test_vst.tabular" />
+            <param name="sample_info" value="test_samples.tabular" />
+            <section name="col_names">
+                <param name="sample_col"    value="SampleID" />
+                <param name="treatment_col" value="Treatment" />
+                <param name="case_label"    value="Induced" />
+            </section>
+            <section name="filtering">
+                <param name="presence_pct"   value="0.5" />
+                <param name="var_percentile" value="50" />
+            </section>
+            <section name="network">
+                <param name="soft_power"       value="6" />
+                <param name="network_type"     value="signed" />
+                <param name="min_module_size"  value="10" />
+                <param name="merge_cut_height" value="0.25" />
+                <param name="max_block_size"   value="2000" />
+                <param name="n_threads"        value="1" />
+            </section>
+            <section name="thresholds">
+                <param name="kme_threshold"  value="0.75" />
+                <param name="cor_threshold"  value="0.50" />
+                <param name="tom_percentile" value="0.90" />
+            </section>
+            <conditional name="deg_section">
+                <param name="use_degs" value="no" />
+            </conditional>
+            <conditional name="enrich_section">
+                <param name="run_enrichment" value="no" />
+            </conditional>
+            <conditional name="pres_section">
+                <param name="run_preservation" value="no" />
+            </conditional>
+            <output name="out_table_modules">
+                <assert_contents>
+                    <has_text text="Gene" />
+                    <has_text text="Module" />
+                </assert_contents>
+            </output>
+            <output name="out_table_go_summary">
+                <assert_contents>
+                    <has_text text="GO enrichment not requested" />
+                </assert_contents>
+            </output>
+            <output name="out_table_preservation">
+                <assert_contents>
+                    <has_text text="Preservation not requested" />
+                </assert_contents>
+            </output>
+        </test>
+    </tests>
+
+    <!-- ================================================================== -->
+    <!-- Help                                                                 -->
+    <!-- ================================================================== -->
+    <help><![CDATA[
+
+.. class:: infomark
+
+**What it does**
+
+This tool performs a complete **Weighted Gene Co-expression Network Analysis (WGCNA)**
+pipeline on VST-normalized RNA-seq data, with two optional advanced analyses:
+
+1. **Gene Ontology / functional enrichment** on each detected module
+2. **Module preservation** (Z-summary) to compare co-expression structure between
+   two biological conditions (e.g. pathogen-infected vs. healthy, or across species)
+
+-----
+
+**Pipeline overview**
+
+.. code-block::
+
+    INPUT: VST matrix + sample metadata
+       │
+       ├─ 1.  Load & align data
+       ├─ 2.  Filter: presence (≥60%) + variance (40th pct)
+       ├─ 3.  Build trait matrix (binary: case vs. control)
+       ├─ 4.  Sample clustering (outlier detection)
+       ├─ 5.  Soft-threshold selection (scale-free topology)
+       ├─ 6.  Blockwise network construction (signed/unsigned TOM)
+       ├─ 7.  Module eigengenes + module-trait Pearson r
+       ├─ 8.  Gene significance (GS) + module membership (kME) — top module
+       ├─ 9.  Hub gene identification (top 10% intramodular connectivity)
+       ├─ 10. kME filtering (|kME| > threshold)
+       ├─ 11. Cytoscape export — high-correlation modules
+       ├─ 12. Module-trait heatmap — selected modules
+       ├─ 13. DEG overlap                               [OPTIONAL]
+       ├─ 14. GO / KEGG enrichment per module           [OPTIONAL — NEW]
+       └─ 15. Module preservation / Z-summary           [OPTIONAL — NEW]
+
+-----
+
+**Input formats**
+
+VST expression matrix (tabular)::
+
+    GeneID       Sample_A1   Sample_A2   Sample_B1   Sample_B2
+    AT1G01010    8.23        7.95        5.12        5.44
+    AT1G01020    6.10        6.35        9.87        10.02
+
+Sample metadata (tabular)::
+
+    SampleID     Treatment
+    Sample_A1    Infected
+    Sample_A2    Infected
+    Sample_B1    Healthy
+    Sample_B2    Healthy
+
+-----
+
+**NEW: Gene Ontology / Enrichment Analysis (Step 14)**
+
+When enabled, runs ``enrichGO`` (GO Biological Process, Molecular Function, Cellular
+Component) and optionally ``enrichKEGG`` on each selected module using
+``clusterProfiler``.
+
+- **OrgDb package** — select the Bioconductor organism annotation package
+  matching your species (e.g. ``org.Hs.eg.db`` for human, ``org.At.tair.db``
+  for Arabidopsis). Custom packages are also supported.
+- **Gene ID type** — must match the row names in your expression matrix (SYMBOL,
+  ENSEMBL, ENTREZID, TAIR, etc.)
+- **KEGG** — requires an internet connection and the 3-letter KEGG organism code
+  (e.g. ``hsa``, ``mmu``, ``ath``, ``sce``)
+
+Outputs include a combined GO summary table, per-module TSV files, a dot plot, and a
+bar plot of the top enriched Biological Process terms per module.
+
+-----
+
+**NEW: Module Preservation / Z-summary (Step 15)**
+
+Answers the question: *"Does a co-expression module identified in condition A
+also exist in condition B?"* — for example, comparing a pathogen-infected
+organism to a healthy reference, or comparing two different species.
+
+Uses WGCNA's ``modulePreservation()`` function, which calculates composite
+Z-statistics based on TOM density, connectivity, and correlation structure.
+
+**Z-summary interpretation:**
+
++----------+------------------------------+---------------------------------------------+
+| Zsummary | Preservation level           | Biological interpretation                   |
++==========+==============================+=============================================+
+| < 2      | ❌ Not preserved              | Module structure is lost in the reference   |
++----------+------------------------------+---------------------------------------------+
+| 2 – 10   | ⚠️ Moderately preserved      | Module partially conserved                  |
++----------+------------------------------+---------------------------------------------+
+| > 10     | ✅ Highly preserved           | Same module exists in both conditions       |
++----------+------------------------------+---------------------------------------------+
+
+**Required inputs:**
+
+- **Reference VST matrix** — expression data from the reference condition (e.g.
+  healthy tissue, wild-type, or a different organism)
+- **Reference sample metadata** — same format as the main metadata
+
+The tool automatically finds genes shared between the two datasets and runs the
+preservation test on those.
+
+-----
+
+**Outputs summary**
+
++------------------------------------------+------------------------------------+
+| Sample clustering plot                   | Outlier check                      |
++------------------------------------------+------------------------------------+
+| Soft-threshold plot                      | Power selection                    |
++------------------------------------------+------------------------------------+
+| Gene dendrogram                          | Module assignment                  |
++------------------------------------------+------------------------------------+
+| Full module-trait heatmap                | All modules × all traits           |
++------------------------------------------+------------------------------------+
+| MM vs GS plot                            | Top module validation              |
++------------------------------------------+------------------------------------+
+| Hub gene plot                            | Connectivity vs kME                |
++------------------------------------------+------------------------------------+
+| Selected modules heatmap                 | High-correlation modules           |
++------------------------------------------+------------------------------------+
+| DEG distribution barplot                 | DEG overlap *(optional)*           |
++------------------------------------------+------------------------------------+
+| **GO dot plot** *(NEW)*                  | Top GO-BP terms per module         |
++------------------------------------------+------------------------------------+
+| **GO bar plot** *(NEW)*                  | Enrichment bars per module         |
++------------------------------------------+------------------------------------+
+| **Z-summary scatter plot** *(NEW)*       | Module preservation overview       |
++------------------------------------------+------------------------------------+
+| **Preservation heatmap** *(NEW)*         | Multi-statistic preservation view  |
++------------------------------------------+------------------------------------+
+| Module gene assignments (TSV)            | All genes with module colors       |
++------------------------------------------+------------------------------------+
+| GS/MM table (TSV)                        | Top module statistics              |
++------------------------------------------+------------------------------------+
+| Hub genes table (TSV)                    | Hub gene list                      |
++------------------------------------------+------------------------------------+
+| Selected modules summary (TSV)           | Modules passing |r| threshold      |
++------------------------------------------+------------------------------------+
+| DEG overlap summary (TSV)               | DEG counts per network module      |
++------------------------------------------+------------------------------------+
+| **GO summary table (TSV)** *(NEW)*       | All significant GO terms           |
++------------------------------------------+------------------------------------+
+| **GO per-module TSVs** *(NEW)*           | One file per module × ontology     |
++------------------------------------------+------------------------------------+
+| **KEGG per-module TSVs** *(NEW)*         | KEGG pathways per module           |
++------------------------------------------+------------------------------------+
+| **Preservation statistics (TSV)** *(NEW)*| Zsummary, Zdensity, Zconnectivity  |
++------------------------------------------+------------------------------------+
+| **Preservation classification (TSV)** *(NEW)* | Not/Moderate/Highly preserved |
++------------------------------------------+------------------------------------+
+| Cytoscape networks (collection)          | Edge + node files per module       |
++------------------------------------------+------------------------------------+
+| R workspace (RData)                      | All objects for downstream use     |
++------------------------------------------+------------------------------------+
+
+-----
+
+**References**
+
+- Langfelder P, Horvath S. **WGCNA: an R package for weighted gene co-expression
+  network analysis**. *BMC Bioinformatics* 2008, **9**:559.
+  https://doi.org/10.1186/1471-2105-9-559
+
+- Langfelder P, Luo R, Oldham MC, Horvath S. **Is my network module preserved and
+  reproducible?** *PLoS Computational Biology* 2011, **7**(1):e1001057.
+  https://doi.org/10.1371/journal.pcbi.1001057
+
+- Yu G et al. **clusterProfiler: a universal enrichment tool for interpreting omics
+  data**. *The Innovation* 2021, **2**(3):100141.
+  https://doi.org/10.1016/j.xinn.2021.100141
+
+    ]]></help>
+
+    <expand macro="citations" />
+
+</tool>
