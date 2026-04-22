@@ -163,9 +163,9 @@
         <!-- Thresholds -->
         <expand macro="threshold_params" />
 
-        <!-- ── DEG overlap (optional) ─────────────────────────────────── -->
+        <!-- ── Differentially Expressed Genes overlap ─────────────────────────────────── -->
         <conditional name="deg_section">
-            <param name="use_degs" type="select" label="DEG overlap analysis">
+            <param name="use_degs" type="select" label="Differentially Expressed Genes analysis">
                 <option value="no" selected="true">No</option>
                 <option value="yes">Yes — provide DEG lists</option>
             </param>
@@ -179,7 +179,7 @@
             </when>
         </conditional>
 
-        <!-- ── Gene Ontology / Enrichment (NEW) ──────────────────────── -->
+        <!-- ── Gene Ontology / Enrichment ──────────────────────── -->
         <conditional name="enrich_section">
             <param name="run_enrichment" type="select"
                 label="Gene Ontology / functional enrichment analysis">
@@ -192,7 +192,7 @@
             </when>
         </conditional>
 
-        <!-- ── Module Preservation / Z-summary (NEW) ─────────────────── -->
+        <!-- ── Module Preservation / Z-summary ─────────────────── -->
         <conditional name="pres_section">
             <param name="run_preservation" type="select"
                 label="Module preservation analysis (Z-summary)">
@@ -255,7 +255,7 @@
                 directory="cytoscape_output" format="tabular" />
         </collection>
 
-        <!-- ── Enrichment outputs (NEW) ── -->
+        <!-- ── Enrichment outputs  ── -->
         <data name="out_table_go_summary" format="tabular"
             label="${tool.name}: GO enrichment — combined summary" />
         <data name="out_plot_go_dot" format="png"
@@ -268,7 +268,7 @@
                 directory="enrichment_output" format="tabular" />
         </collection>
 
-        <!-- ── Preservation outputs (NEW) ── -->
+        <!-- ── Preservation outputs  ── -->
         <data name="out_table_preservation" format="tabular"
             label="${tool.name}: Module preservation — full statistics" />
         <data name="out_table_pres_class"   format="tabular"

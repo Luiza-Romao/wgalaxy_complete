@@ -146,7 +146,7 @@
         </section>
     </xml>
 
-    <!-- ── NEW: Module preservation parameters ───────────────────────────── -->
+    <!--  Module preservation parameters ───────────────────────────── -->
     <xml name="preservation_params">
         <section name="pres_params" title="Module Preservation Settings" expanded="true">
             <param name="pres_n_perms" type="integer" value="200" min="50" max="1000"
