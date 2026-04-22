@@ -363,25 +363,23 @@ pipeline on VST-normalized RNA-seq data, with two optional advanced analyses:
 
 **Pipeline overview**
 
-.. code-block::
+Steps performed::
 
-    INPUT: VST matrix + sample metadata
-       │
-       ├─ 1.  Load & align data
-       ├─ 2.  Filter: presence (≥60%) + variance (40th pct)
-       ├─ 3.  Build trait matrix (binary: case vs. control)
-       ├─ 4.  Sample clustering (outlier detection)
-       ├─ 5.  Soft-threshold selection (scale-free topology)
-       ├─ 6.  Blockwise network construction (signed/unsigned TOM)
-       ├─ 7.  Module eigengenes + module-trait Pearson r
-       ├─ 8.  Gene significance (GS) + module membership (kME) — top module
-       ├─ 9.  Hub gene identification (top 10% intramodular connectivity)
-       ├─ 10. kME filtering (|kME| > threshold)
-       ├─ 11. Cytoscape export — high-correlation modules
-       ├─ 12. Module-trait heatmap — selected modules
-       ├─ 13. DEG overlap                               [OPTIONAL]
-       ├─ 14. GO / KEGG enrichment per module           [OPTIONAL — NEW]
-       └─ 15. Module preservation / Z-summary           [OPTIONAL — NEW]
+    1.  Load and align data (VST matrix + sample metadata)
+    2.  Filter: presence filter + variance percentile filter
+    3.  Build trait matrix (binary: case vs. control)
+    4.  Sample clustering (outlier detection)
+    5.  Soft-threshold selection (scale-free topology)
+    6.  Blockwise network construction (signed/unsigned TOM)
+    7.  Module eigengenes + module-trait Pearson r
+    8.  Gene significance (GS) + module membership (kME) for the top module
+    9.  Hub gene identification (top 10% intramodular connectivity)
+    10. kME filtering (|kME| > threshold)
+    11. Cytoscape export for high-correlation modules
+    12. Module-trait heatmap for selected modules
+    13. DEG overlap (optional)
+    14. GO / KEGG enrichment per module (optional)
+    15. Module preservation / Z-summary (optional)
 
 -----
 
@@ -403,7 +401,7 @@ Sample metadata (tabular)::
 
 -----
 
-**NEW: Gene Ontology / Enrichment Analysis (Step 14)**
+**Gene Ontology / Enrichment Analysis (Step 14)**
 
 When enabled, runs ``enrichGO`` (GO Biological Process, Molecular Function, Cellular
 Component) and optionally ``enrichKEGG`` on each selected module using
@@ -422,7 +420,7 @@ bar plot of the top enriched Biological Process terms per module.
 
 -----
 
-**NEW: Module Preservation / Z-summary (Step 15)**
+**Module Preservation / Z-summary (Step 15)**
 
 Answers the question: *"Does a co-expression module identified in condition A
 also exist in condition B?"* — for example, comparing a pathogen-infected
@@ -436,11 +434,11 @@ Z-statistics based on TOM density, connectivity, and correlation structure.
 +----------+------------------------------+---------------------------------------------+
 | Zsummary | Preservation level           | Biological interpretation                   |
 +==========+==============================+=============================================+
-| < 2      | ❌ Not preserved              | Module structure is lost in the reference   |
+| < 2      | Not preserved                | Module structure is lost in the reference   |
 +----------+------------------------------+---------------------------------------------+
-| 2 – 10   | ⚠️ Moderately preserved      | Module partially conserved                  |
+| 2 – 10   | Moderately preserved         | Module partially conserved                  |
 +----------+------------------------------+---------------------------------------------+
-| > 10     | ✅ Highly preserved           | Same module exists in both conditions       |
+| > 10     | Highly preserved             | Same module exists in both conditions       |
 +----------+------------------------------+---------------------------------------------+
 
 **Required inputs:**
@@ -463,7 +461,7 @@ preservation test on those.
 +------------------------------------------+------------------------------------+
 | Gene dendrogram                          | Module assignment                  |
 +------------------------------------------+------------------------------------+
-| Full module-trait heatmap                | All modules × all traits           |
+| Full module-trait heatmap                | All modules x all traits           |
 +------------------------------------------+------------------------------------+
 | MM vs GS plot                            | Top module validation              |
 +------------------------------------------+------------------------------------+
@@ -471,15 +469,15 @@ preservation test on those.
 +------------------------------------------+------------------------------------+
 | Selected modules heatmap                 | High-correlation modules           |
 +------------------------------------------+------------------------------------+
-| DEG distribution barplot                 | DEG overlap *(optional)*           |
+| DEG distribution barplot (optional)      | DEG overlap                        |
 +------------------------------------------+------------------------------------+
-| **GO dot plot** *(NEW)*                  | Top GO-BP terms per module         |
+| GO dot plot (optional)                   | Top GO-BP terms per module         |
 +------------------------------------------+------------------------------------+
-| **GO bar plot** *(NEW)*                  | Enrichment bars per module         |
+| GO bar plot (optional)                   | Enrichment bars per module         |
 +------------------------------------------+------------------------------------+
-| **Z-summary scatter plot** *(NEW)*       | Module preservation overview       |
+| Z-summary scatter plot (optional)        | Module preservation overview       |
 +------------------------------------------+------------------------------------+
-| **Preservation heatmap** *(NEW)*         | Multi-statistic preservation view  |
+| Preservation heatmap (optional)          | Multi-statistic preservation view  |
 +------------------------------------------+------------------------------------+
 | Module gene assignments (TSV)            | All genes with module colors       |
 +------------------------------------------+------------------------------------+
@@ -491,15 +489,15 @@ preservation test on those.
 +------------------------------------------+------------------------------------+
 | DEG overlap summary (TSV)               | DEG counts per network module      |
 +------------------------------------------+------------------------------------+
-| **GO summary table (TSV)** *(NEW)*       | All significant GO terms           |
+| GO summary table (TSV, optional)         | All significant GO terms           |
 +------------------------------------------+------------------------------------+
-| **GO per-module TSVs** *(NEW)*           | One file per module × ontology     |
+| GO per-module TSVs (optional)            | One file per module x ontology     |
 +------------------------------------------+------------------------------------+
-| **KEGG per-module TSVs** *(NEW)*         | KEGG pathways per module           |
+| KEGG per-module TSVs (optional)          | KEGG pathways per module           |
 +------------------------------------------+------------------------------------+
-| **Preservation statistics (TSV)** *(NEW)*| Zsummary, Zdensity, Zconnectivity  |
+| Preservation statistics (TSV, optional)  | Zsummary, Zdensity, Zconnectivity  |
 +------------------------------------------+------------------------------------+
-| **Preservation classification (TSV)** *(NEW)* | Not/Moderate/Highly preserved |
+| Preservation classification (TSV, opt.)  | Not/Moderate/Highly preserved      |
 +------------------------------------------+------------------------------------+
 | Cytoscape networks (collection)          | Edge + node files per module       |
 +------------------------------------------+------------------------------------+
@@ -510,16 +508,16 @@ preservation test on those.
 
 **References**
 
-- Langfelder P, Horvath S. **WGCNA: an R package for weighted gene co-expression
-  network analysis**. *BMC Bioinformatics* 2008, **9**:559.
+- Langfelder P, Horvath S. WGCNA: an R package for weighted gene co-expression
+  network analysis. *BMC Bioinformatics* 2008, 9:559.
   https://doi.org/10.1186/1471-2105-9-559
 
-- Langfelder P, Luo R, Oldham MC, Horvath S. **Is my network module preserved and
-  reproducible?** *PLoS Computational Biology* 2011, **7**(1):e1001057.
+- Langfelder P, Luo R, Oldham MC, Horvath S. Is my network module preserved and
+  reproducible? *PLoS Computational Biology* 2011, 7(1):e1001057.
   https://doi.org/10.1371/journal.pcbi.1001057
 
-- Yu G et al. **clusterProfiler: a universal enrichment tool for interpreting omics
-  data**. *The Innovation* 2021, **2**(3):100141.
+- Yu G et al. clusterProfiler: a universal enrichment tool for interpreting omics
+  data. *The Innovation* 2021, 2(3):100141.
   https://doi.org/10.1016/j.xinn.2021.100141
 
     ]]></help>
