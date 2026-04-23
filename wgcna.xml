@@ -372,7 +372,7 @@ Steps performed:
     7.  Module eigengenes + module-trait Pearson r
     8.  Gene significance (GS) + module membership (kME) for the top module
     9.  Hub gene identification (top 10% intramodular connectivity)
-    10. kME filtering (|kME| > threshold)
+    10. kME filtering (kME > threshold)
     11. Cytoscape export for high-correlation modules
     12. Module-trait heatmap for selected modules
     13. DEG overlap (optional)
@@ -399,7 +399,7 @@ Sample metadata (tabular):
 
 -----
 
-**Gene Ontology / Enrichment Analysis (Step 14)**
+**Gene Ontology / Enrichment Analysis**
 
 When enabled, runs ``enrichGO`` (GO Biological Process, Molecular Function, Cellular
 Component) and optionally ``enrichKEGG`` on each selected module using
