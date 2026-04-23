@@ -1,9 +1,8 @@
 #!/usr/bin/env Rscript
-# =============================================================================
 # WGCNA Galaxy Tool v2 — Main Analysis Script
 # Weighted Gene Co-expression Network Analysis (WGCNA)
 # Compatible with Galaxy bioinformatics platform
-#
+
 # Pipeline:
 #   1.  Data loading and sample metadata
 #   2.  Expression filtering (presence and variance)
@@ -18,9 +17,8 @@
 #   11. Cytoscape-ready network export (high-correlation modules)
 #   12. Module-trait heatmap (selected modules)
 #   13. DEG overlap analysis              [OPTIONAL]
-#   14. Gene Ontology / Enrichment        [OPTIONAL — NEW]
-#   15. Module Preservation / Z-summary   [OPTIONAL — NEW]
-# =============================================================================
+#   14. Gene Ontology / Enrichment        [OPTIONAL]
+#   15. Module Preservation / Z-summary   [OPTIONAL]
 
 suppressPackageStartupMessages(library(optparse))
 
@@ -107,9 +105,8 @@ if (!file.exists(opt$vst_matrix))
 if (!file.exists(opt$sample_info))
   stop("Sample info not found: ", opt$sample_info)
 
-# ----------------------------------------------------------------------------- 
 # Helpers
-# -----------------------------------------------------------------------------
+
 placeholder_png <- function(path, msg="Analysis not requested") {
   png(path, width=500, height=200, res=72)
   plot.new(); text(0.5, 0.5, msg, cex=1.2, col="grey40")
@@ -127,9 +124,8 @@ load_tabular <- function(path, row1=FALSE, lbl="file") {
   )
 }
 
-# -----------------------------------------------------------------------------
 # Load core libraries
-# -----------------------------------------------------------------------------
+
 cat("=== Loading libraries ===\n")
 suppressPackageStartupMessages({
   library(WGCNA); library(ggplot2); library(ggrepel)
@@ -140,9 +136,8 @@ enableWGCNAThreads(nThreads=opt$n_threads)
 dir.create(opt$out_cytoscape_dir, showWarnings=FALSE, recursive=TRUE)
 dir.create(opt$out_enrich_dir,    showWarnings=FALSE, recursive=TRUE)
 
-# =============================================================================
 # STEP 1: Load data
-# =============================================================================
+               
 cat("\n=== STEP 1: Loading data ===\n")
 sample_info <- load_tabular(opt$sample_info, lbl="sample info")
 for (col in c(opt$sample_col, opt$treatment_col))
@@ -160,9 +155,8 @@ expr_data   <- expr_data[, common, drop=FALSE]
 sample_info <- sample_info[common, , drop=FALSE]
 cat("Samples used:", length(common), "\n")
 
-# =============================================================================
 # STEP 2: Gene filtering
-# =============================================================================
+
 cat("\n=== STEP 2: Filtering genes ===\n")
 pmin <- ceiling(opt$presence_pct * ncol(expr_data))
 expr_data <- expr_data[rowSums(expr_data > 0) >= pmin, ]
@@ -180,9 +174,8 @@ cat("After variance filter:", nrow(expr_data), "genes\n")
 expr_matrix <- t(as.matrix(expr_data))
 cat("Final matrix:", nrow(expr_matrix), "samples x", ncol(expr_matrix), "genes\n")
 
-# =============================================================================
 # STEP 3: Trait matrix
-# =============================================================================
+
 cat("\n=== STEP 3: Trait matrix ===\n")
 groups   <- sample_info[[opt$treatment_col]]
 u_groups <- unique(groups)
@@ -202,9 +195,8 @@ trait_data <- trait_data[rownames(expr_matrix),,drop=FALSE]
 trait_name <- colnames(trait_data)[1]
 cat("Trait:", trait_name, "\n"); print(head(trait_data))
 
-# =============================================================================
 # STEP 4: Sample clustering
-# =============================================================================
+
 cat("\n=== STEP 4: Sample clustering ===\n")
 stree  <- hclust(dist(expr_matrix), method="average")
 trcols <- numbers2colors(trait_data, signed=FALSE)
@@ -213,9 +205,8 @@ plotDendroAndColors(stree, trcols, groupLabels=colnames(trait_data),
                     main="Sample dendrogram and trait heatmap")
 dev.off()
 
-# =============================================================================
 # STEP 5: Soft-threshold
-# =============================================================================
+
 cat("\n=== STEP 5: Soft-threshold ===\n")
 powers <- c(1:10, seq(12,30,2))
 sft <- pickSoftThreshold(expr_matrix, powerVector=powers,
@@ -235,9 +226,8 @@ soft_power <- if (opt$soft_power>0) opt$soft_power else sft$powerEstimate
 if (is.na(soft_power)||is.null(soft_power)) { soft_power <- 6; warning("Using power=6") }
 cat("Power selected:", soft_power, "\n")
 
-# =============================================================================
 # STEP 6: Network construction
-# =============================================================================
+
 cat("\n=== STEP 6: Network construction ===\n")
 cor <- WGCNA::cor
 net <- blockwiseModules(
@@ -262,9 +252,8 @@ dev.off()
 write.table(data.frame(Gene=colnames(expr_matrix), Module=module_colors),
             file=opt$out_table_modules, sep="\t", row.names=FALSE, quote=FALSE)
 
-# =============================================================================
 # STEP 7: Module-trait correlation
-# =============================================================================
+
 cat("\n=== STEP 7: Module-trait correlations ===\n")
 MEs               <- orderMEs(net$MEs)
 module_trait_cor  <- cor(MEs, trait_data, use="p")
@@ -283,9 +272,8 @@ labeledHeatmap(Matrix=module_trait_cor, xLabels=colnames(trait_data),
                main="Module eigengene – trait correlation")
 dev.off()
 
-# =============================================================================
 # STEP 8: Top module — GS and kME
-# =============================================================================
+
 cat("\n=== STEP 8: Top module ===\n")
 best_ME_name  <- names(MEs)[which.max(abs(module_trait_cor[,trait_name]))]
 best_ME_num   <- as.numeric(gsub("ME","",best_ME_name))
@@ -316,9 +304,8 @@ legend("topleft",bty="n",
                                      abs(module_df$GeneSignificance)),3)))
 dev.off()
 
-# =============================================================================
 # STEP 9: Hub genes
-# =============================================================================
+
 cat("\n=== STEP 9: Hub genes ===\n")
 adj_m        <- adjacency(expr_matrix[,genes_in_mod], power=soft_power, type=opt$network_type)
 conn         <- colSums(adj_m)-1
@@ -337,16 +324,14 @@ legend("topleft",legend=c("Hub (top 10%)","Other"),
        col=c("firebrick","grey60"),pch=20,bty="n")
 dev.off()
 
-# =============================================================================
 # STEP 10: kME filtering
-# =============================================================================
+
 genes_high_kME <- module_df[abs(module_df$ModuleMembership)>opt$kme_threshold,]
 cat("|kME| >", opt$kme_threshold, ": before=", nrow(module_df),
     " after=", nrow(genes_high_kME), "\n")
 
-# =============================================================================
 # STEP 11: Cytoscape export
-# =============================================================================
+
 cat("\n=== STEP 11: Cytoscape export ===\n")
 module_colors_all <- labels2colors(net$colors)
 names(module_colors_all) <- colnames(expr_matrix)
@@ -393,9 +378,8 @@ for (i in seq_len(nrow(modules_selected))) {
 }
 cat("Cytoscape export complete.\n")
 
-# =============================================================================
 # STEP 12: Selected module heatmap
-# =============================================================================
+
 cat("\n=== STEP 12: Selected module heatmap ===\n")
 sel_ME <- paste0("ME",modules_selected$ModuleNum)
 sel_ME <- sel_ME[sel_ME %in% rownames(module_trait_cor)]
@@ -416,9 +400,8 @@ if (length(sel_ME)>0) {
   dev.off()
 } else placeholder_png(opt$out_plot_heatmap_sel, "No modules above threshold")
 
-# =============================================================================
 # STEP 13 (optional): Differentially expressed genes overlap
-# =============================================================================
+
 has_degs <- opt$up_degs!="None" && opt$down_degs!="None" &&
   file.exists(opt$up_degs) && file.exists(opt$down_degs)
 if (has_degs) {
@@ -475,9 +458,8 @@ if (has_degs) {
   placeholder_png(opt$out_plot_deg_bar,"DEG analysis not requested")
 }
 
-# =============================================================================
 # STEP 14 (optional): GO / Functional Enrichment Analysis
-# =============================================================================
+
 run_enrichment <- tolower(trimws(opt$run_enrichment)) == "yes"
 
 if (run_enrichment) {
@@ -633,7 +615,6 @@ if (run_enrichment) {
   placeholder_png(opt$out_plot_go_bar, "GO enrichment not requested")
 }
 
-# =============================================================================
 # STEP 15 (optional): Module Preservation / Z-summary
 #
 # Compares co-expression structure of modules defined in the QUERY (main/test)
@@ -644,7 +625,7 @@ if (run_enrichment) {
 #   < 2    : not preserved (structure differs between conditions)
 #   2 – 10 : moderately preserved
 #   > 10   : highly preserved (same module exists in both organisms/conditions)
-# =============================================================================
+
 run_preservation <- tolower(trimws(opt$run_preservation)) == "yes"
 
 if (run_preservation) {
@@ -823,9 +804,8 @@ if (run_preservation) {
   placeholder_png(opt$out_plot_pres_heatmap,   "Preservation not requested")
 }
 
-# =============================================================================
 # Save workspace
-# =============================================================================
+
 cat("\n=== Saving RData ===\n")
 objs <- c("net","expr_matrix","trait_data","MEs","module_colors","module_colors_all",
           "module_trait_cor","module_trait_pval","gene_sig","module_df",
