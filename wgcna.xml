@@ -348,8 +348,6 @@
     <!-- ================================================================== -->
     <help><![CDATA[
 
-.. class:: infomark
-
 **What it does**
 
 This tool performs a complete **Weighted Gene Co-expression Network Analysis (WGCNA)**
@@ -363,7 +361,7 @@ pipeline on VST-normalized RNA-seq data, with two optional advanced analyses:
 
 **Pipeline overview**
 
-Steps performed::
+Steps performed:
 
     1.  Load and align data (VST matrix + sample metadata)
     2.  Filter: presence filter + variance percentile filter
@@ -385,13 +383,13 @@ Steps performed::
 
 **Input formats**
 
-VST expression matrix (tabular)::
+VST expression matrix (tabular):
 
     GeneID       Sample_A1   Sample_A2   Sample_B1   Sample_B2
     AT1G01010    8.23        7.95        5.12        5.44
     AT1G01020    6.10        6.35        9.87        10.02
 
-Sample metadata (tabular)::
+Sample metadata (tabular):
 
     SampleID     Treatment
     Sample_A1    Infected
