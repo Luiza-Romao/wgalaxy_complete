@@ -90,7 +90,7 @@
         </section>
     </xml>
 
-    <!-- ── NEW: Enrichment parameters ────────────────────────────────────── -->
+    <!-- ── Enrichment parameters ────────────────────────────────────── -->
     <xml name="enrichment_params">
         <section name="enrich_params" title="Enrichment Settings" expanded="true">
             <param name="orgdb_package" type="select"
