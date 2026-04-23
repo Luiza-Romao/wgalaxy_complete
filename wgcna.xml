@@ -481,21 +481,6 @@ preservation test on those.
 - Analysis log
 
 -----
-
-**References**
-
-- Langfelder P, Horvath S. WGCNA: an R package for weighted gene co-expression
-  network analysis. *BMC Bioinformatics* 2008, 9:559.
-  https://doi.org/10.1186/1471-2105-9-559
-
-- Langfelder P, Luo R, Oldham MC, Horvath S. Is my network module preserved and
-  reproducible? *PLoS Computational Biology* 2011, 7(1):e1001057.
-  https://doi.org/10.1371/journal.pcbi.1001057
-
-- Yu G et al. clusterProfiler: a universal enrichment tool for interpreting omics
-  data. *The Innovation* 2021, 2(3):100141.
-  https://doi.org/10.1016/j.xinn.2021.100141
-
     ]]></help>
 
     <expand macro="citations" />

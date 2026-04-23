@@ -49,7 +49,7 @@ option_list <- list(
   make_option("--kme_threshold",  type="double", default=0.8),
   make_option("--cor_threshold",  type="double", default=0.6),
   make_option("--tom_percentile", type="double", default=0.95),
-  # ── NEW: GO / Enrichment ──────────────────────────────────────────────────
+  # ── GO / Enrichment ──────────────────────────────────────────────────
   make_option("--run_enrichment",  type="character", default="no"),
   make_option("--orgdb_package",   type="character", default="none"),
   make_option("--gene_id_type",    type="character", default="SYMBOL"),
@@ -59,7 +59,7 @@ option_list <- list(
   make_option("--enrich_qval_cut", type="double",    default=0.2),
   make_option("--enrich_min_gs",   type="integer",   default=10),
   make_option("--enrich_max_gs",   type="integer",   default=500),
-  # ── NEW: Module Preservation ─────────────────────────────────────────────
+  # ── Module Preservation ─────────────────────────────────────────────
   make_option("--run_preservation",  type="character", default="no"),
   make_option("--ref_vst_matrix",    type="character", default="None"),
   make_option("--ref_sample_info",   type="character", default="None"),
@@ -417,7 +417,7 @@ if (length(sel_ME)>0) {
 } else placeholder_png(opt$out_plot_heatmap_sel, "No modules above threshold")
 
 # =============================================================================
-# STEP 13 (optional): DEG overlap
+# STEP 13 (optional): Differentially expressed genes overlap
 # =============================================================================
 has_degs <- opt$up_degs!="None" && opt$down_degs!="None" &&
   file.exists(opt$up_degs) && file.exists(opt$down_degs)

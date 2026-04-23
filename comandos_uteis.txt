@@ -1,5 +1,5 @@
 # comando para usar o branch confiavel do galaxy
-planemo serve --host 0.0.0.0 --port 8081 --galaxy_branch release_24.0
+planemo serve --host 0.0.0.0 --port 8081 --galaxy_branch release_25.0
 
 # comando para apagar o historico do planemo
 rm -rf ~/.planemo/gx_venv_3/
