@@ -348,6 +348,8 @@
     <!-- ================================================================== -->
     <help><![CDATA[
 
+.. class:: infomark
+
 **What it does**
 
 This tool performs a complete **Weighted Gene Co-expression Network Analysis (WGCNA)**
@@ -429,15 +431,9 @@ Z-statistics based on TOM density, connectivity, and correlation structure.
 
 **Z-summary interpretation:**
 
-+----------+------------------------------+---------------------------------------------+
-| Zsummary | Preservation level           | Biological interpretation                   |
-+==========+==============================+=============================================+
-| < 2      | Not preserved                | Module structure is lost in the reference   |
-+----------+------------------------------+---------------------------------------------+
-| 2 – 10   | Moderately preserved         | Module partially conserved                  |
-+----------+------------------------------+---------------------------------------------+
-| > 10     | Highly preserved             | Same module exists in both conditions       |
-+----------+------------------------------+---------------------------------------------+
+- **Zsummary < 2** — module structure is lost in the reference (not preserved)
+- **Zsummary 2 to 10** — module partially conserved (moderately preserved)
+- **Zsummary > 10** — same module exists in both conditions (highly preserved)
 
 **Required inputs:**
 
@@ -452,55 +448,39 @@ preservation test on those.
 
 **Outputs summary**
 
-+------------------------------------------+------------------------------------+
-| Sample clustering plot                   | Outlier check                      |
-+------------------------------------------+------------------------------------+
-| Soft-threshold plot                      | Power selection                    |
-+------------------------------------------+------------------------------------+
-| Gene dendrogram                          | Module assignment                  |
-+------------------------------------------+------------------------------------+
-| Full module-trait heatmap                | All modules x all traits           |
-+------------------------------------------+------------------------------------+
-| MM vs GS plot                            | Top module validation              |
-+------------------------------------------+------------------------------------+
-| Hub gene plot                            | Connectivity vs kME                |
-+------------------------------------------+------------------------------------+
-| Selected modules heatmap                 | High-correlation modules           |
-+------------------------------------------+------------------------------------+
-| DEG distribution barplot (optional)      | DEG overlap                        |
-+------------------------------------------+------------------------------------+
-| GO dot plot (optional)                   | Top GO-BP terms per module         |
-+------------------------------------------+------------------------------------+
-| GO bar plot (optional)                   | Enrichment bars per module         |
-+------------------------------------------+------------------------------------+
-| Z-summary scatter plot (optional)        | Module preservation overview       |
-+------------------------------------------+------------------------------------+
-| Preservation heatmap (optional)          | Multi-statistic preservation view  |
-+------------------------------------------+------------------------------------+
-| Module gene assignments (TSV)            | All genes with module colors       |
-+------------------------------------------+------------------------------------+
-| GS/MM table (TSV)                        | Top module statistics              |
-+------------------------------------------+------------------------------------+
-| Hub genes table (TSV)                    | Hub gene list                      |
-+------------------------------------------+------------------------------------+
-| Selected modules summary (TSV)           | Modules passing |r| threshold      |
-+------------------------------------------+------------------------------------+
-| DEG overlap summary (TSV)               | DEG counts per network module      |
-+------------------------------------------+------------------------------------+
-| GO summary table (TSV, optional)         | All significant GO terms           |
-+------------------------------------------+------------------------------------+
-| GO per-module TSVs (optional)            | One file per module x ontology     |
-+------------------------------------------+------------------------------------+
-| KEGG per-module TSVs (optional)          | KEGG pathways per module           |
-+------------------------------------------+------------------------------------+
-| Preservation statistics (TSV, optional)  | Zsummary, Zdensity, Zconnectivity  |
-+------------------------------------------+------------------------------------+
-| Preservation classification (TSV, opt.)  | Not/Moderate/Highly preserved      |
-+------------------------------------------+------------------------------------+
-| Cytoscape networks (collection)          | Edge + node files per module       |
-+------------------------------------------+------------------------------------+
-| R workspace (RData)                      | All objects for downstream use     |
-+------------------------------------------+------------------------------------+
+*Plots*
+
+- Sample clustering plot — outlier check
+- Soft-threshold plot — power selection guidance
+- Gene dendrogram — module color assignments
+- Full module-trait heatmap — all modules vs all traits
+- MM vs GS scatter plot — top module relevance validation
+- Hub gene plot — connectivity vs kME
+- Selected modules heatmap — high-correlation modules
+- DEG distribution barplot *(optional)* — DEG overlap per module
+- GO dot plot *(optional)* — top GO-BP terms per module
+- GO bar plot *(optional)* — enrichment bars per module
+- Z-summary scatter plot *(optional)* — module preservation overview
+- Preservation statistics heatmap *(optional)* — multi-statistic view
+
+*Tables (TSV)*
+
+- Module gene assignments — all genes with module colors
+- Gene significance and module membership — top module statistics
+- Hub genes — hub gene list with connectivity scores
+- Selected modules summary — modules passing the correlation threshold
+- DEG overlap summary *(optional)* — DEG counts per network module
+- GO combined summary *(optional)* — all significant GO terms
+- GO per-module files *(optional)* — one TSV per module per ontology
+- KEGG per-module files *(optional)* — KEGG pathways per module
+- Module preservation statistics *(optional)* — Zsummary, Zdensity, Zconnectivity
+- Module preservation classification *(optional)* — Not/Moderate/Highly preserved
+
+*Other*
+
+- Cytoscape networks (collection) — edge and node files per module
+- R workspace (RData) — all objects for downstream use
+- Analysis log
 
 -----
 
