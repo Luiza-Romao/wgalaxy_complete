@@ -1,8 +1,8 @@
-# WGCNA Galaxy Tool v2
+# WGCNA Galaxy Tool 
 
 **Weighted Gene Co-expression Network Analysis** for the Galaxy bioinformatics platform.
 
-**New in v2:**
+**Recent improvements:**
 - ✅ Gene Ontology / functional enrichment analysis on WGCNA modules (clusterProfiler)
 - ✅ Module preservation / Z-summary to compare networks between conditions or organisms
 
@@ -14,7 +14,7 @@
 |------|-------------|
 | `wgcna.xml` | Galaxy tool wrapper — inputs, outputs, UI, help text |
 | `macros.xml` | Reusable XML macros (requirements, parameter sections) |
-| `wgcna.R` | Main R analysis script (15-step pipeline) |
+| `wgcna.R` | Main R analysis script |
 | `conda_environment.yml` | Conda env with all dependencies |
 | `generate_test_data.R` | Generates minimal test datasets |
 
@@ -67,20 +67,25 @@ Sample_A2    Infected
 Sample_B1    Healthy
 Sample_B2    Healthy
 ```
-
+- Tab-separated
+- Header required
+- Column names are configurable in the tool
+  
 ### DEG Lists (tabular, optional)
 ```
 AT1G01010
 AT2G05230
 ```
-- No header; first column = gene IDs
+- Tab-separated, no header required
+- First column = gene IDs (must match expression matrix)
+- Provide separately for up- and down-regulated genes
 
-### Reference VST Matrix (for preservation, tabular)
+### Aditional VST Matrix (for Module preservation / Z-summary to compare networks between conditions or organisms, tabular)
 Same format as the main VST matrix but from a different condition or organism.
 
 ---
 
-## Pipeline
+## Pipeline steps
 
 ```
 INPUT: VST matrix + sample metadata
@@ -97,21 +102,76 @@ INPUT: VST matrix + sample metadata
    ├─ 10. kME filtering (core module genes)
    ├─ 11. Cytoscape export (edge + node tables)
    ├─ 12. Selected module heatmap
-   ├─ 13. DEG overlap analysis              [OPTIONAL]
-   ├─ 14. GO / KEGG enrichment             [OPTIONAL — NEW]
-   └─ 15. Module preservation / Z-summary  [OPTIONAL — NEW]
+   ├─ 13. DEG overlap analysis             [OPTIONAL]
+   ├─ 14. GO / KEGG enrichment             [OPTIONAL]
+   └─ 15. Module preservation / Z-summary  [OPTIONAL]
 ```
 
 ---
 
-## New Feature 1: GO / Functional Enrichment (Step 14)
+## WGCNA tool Key Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| Presence fraction | 0.60 | Min fraction of samples with non-zero expression |
+| Variance percentile | 40 | Remove genes below this variance percentile |
+| Soft power (β) | 0 (auto) | Network adjacency power; 0 = auto-detect |
+| Network type | signed | `signed` preserves co-expression direction |
+| Min module size | 50 | Minimum genes per co-expression module |
+| Merge cut height | 0.25 | Modules with eigengene r ≥ 0.75 are merged |
+| kME threshold | 0.80 | Module membership filter for core genes |
+| Correlation threshold | 0.60 | Pearson’s correlation coefficient cutoff for Cytoscape module export |
+| TOM percentile | 0.95 | Top 5% TOM edges exported to Cytoscape |
+
+---
+## All Outputs Reference
+
+### Plots (PNG)
+| File | Description |
+|------|-------------|
+| Sample clustering | Hierarchical dendrogram + trait color bar |
+| Soft-threshold | R² and mean connectivity vs β |
+| Gene dendrogram | Module color bar |
+| Full heatmap | All modules × traits |
+| MM vs GS | Module membership vs gene significance |
+| Hub genes | Connectivity vs kME |
+| Selected heatmap | High-correlation modules only |
+| DEG barplot | Up/down DEGs per network module |
+| **GO dot plot** | Top GO-BP terms, dot-sized by gene count |
+| **GO bar plot** | Enrichment by –log10(p.adj) |
+| **Z-summary scatter** | Preservation score per module |
+| **Preservation heatmap** | Zsummary, Zdensity, Zconnectivity |
+
+### Tables (TSV)
+| File | Description |
+|------|-------------|
+| Module assignments | Gene → module color |
+| GS/MM | Gene significance + kME (top module) |
+| Hub genes | Top 10% connectivity genes |
+| Selected modules | High-correlation module summary |
+| DEG summary | DEG counts per network module |
+| **GO summary** | All enriched GO terms (combined) |
+| **GO/KEGG per module** | Per-module enrichment (collection) |
+| **Preservation full** | All Z-statistics |
+| **Preservation class** | Not/Moderate/Highly preserved |
+
+### Cytoscape Networks (collection of tabular files)
+- `edges_{module}_kMEfilt.txt` — Edge table: `fromNode`, `toNode`, `weight` (TOM)
+- `nodes_{module}_kMEfilt.txt` — Node table: `node`, `module`, `kME`, `GeneSignificance`, `Connectivity`
+- `nodes_{module}_kMEfilt_with_DEG.txt` *(optional)* — Nodes with `DE_status` column
+
+### Other
+- `wgcna_results.RData` — All R objects for downstream custom analysis
+- Analysis log — stdout/stderr
+
+---
+### Gene Ontology (GO) clusterProfiler
 
 ### What it does
 Runs `enrichGO()` (clusterProfiler) across all three GO ontologies
 (Biological Process, Molecular Function, Cellular Component) and optionally
 `enrichKEGG()` for each module that passes the correlation threshold.
 
-### Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
@@ -152,7 +212,7 @@ Runs `enrichGO()` (clusterProfiler) across all three GO ontologies
 
 ---
 
-## New Feature 2: Module Preservation / Z-summary (Step 15)
+## Module Preservation / Z-summary 
 
 ### What it does
 Uses WGCNA's `modulePreservation()` to test whether modules identified in the
@@ -168,9 +228,9 @@ Uses WGCNA's `modulePreservation()` to test whether modules identified in the
 
 | Zsummary | Level | Interpretation |
 |----------|-------|----------------|
-| < 2 | ❌ Not preserved | Module structure lost in reference |
-| 2–10 | ⚠️ Moderately preserved | Partial conservation |
-| > 10 | ✅ Highly preserved | Same module exists in both conditions |
+| < 2 | Not preserved | Module structure lost in reference |
+| 2–10 | Moderately preserved | Partial conservation |
+| > 10 | Highly preserved | Same module exists in both conditions |
 
 ### Parameters
 
@@ -197,45 +257,16 @@ Uses WGCNA's `modulePreservation()` to test whether modules identified in the
 
 ---
 
-## All Outputs Reference
+## Cytoscape Import Guide
 
-### Plots (PNG)
-| File | Description |
-|------|-------------|
-| Sample clustering | Hierarchical dendrogram + trait color bar |
-| Soft-threshold | R² and mean connectivity vs β |
-| Gene dendrogram | Module color bar |
-| Full heatmap | All modules × traits |
-| MM vs GS | Module membership vs gene significance |
-| Hub genes | Connectivity vs kME |
-| Selected heatmap | High-correlation modules only |
-| DEG barplot | Up/down DEGs per network module |
-| **GO dot plot** | Top GO-BP terms, dot-sized by gene count |
-| **GO bar plot** | Enrichment by –log10(p.adj) |
-| **Z-summary scatter** | Preservation score per module |
-| **Preservation heatmap** | Zsummary, Zdensity, Zconnectivity |
+1. Open Cytoscape
+2. **File → Import → Network from File** → select `edges_{module}_kMEfilt.txt`
+   - Source: `fromNode`, Target: `toNode`, Interaction type: `weight`
+3. **File → Import → Table from File** → select `nodes_{module}_kMEfilt.txt`
+   - Select "Node Table" and map `node` to node names
+4. Apply a layout (e.g. **Layout → Prefuse Force Directed**)
+5. Style nodes by `kME` or `GeneSignificance` columns
 
-### Tables (TSV)
-| File | Description |
-|------|-------------|
-| Module assignments | Gene → module color |
-| GS/MM | Gene significance + kME (top module) |
-| Hub genes | Top 10% connectivity genes |
-| Selected modules | High-correlation module summary |
-| DEG summary | DEG counts per network module |
-| **GO summary** | All enriched GO terms (combined) |
-| **GO/KEGG per module** | Per-module enrichment (collection) |
-| **Preservation full** | All Z-statistics |
-| **Preservation class** | Not/Moderate/Highly preserved |
-
----
-
-## Cytoscape Import
-
-1. **File → Import → Network from File** → `edges_<module>_kMEfilt.txt`
-2. **File → Import → Table from File** → `nodes_<module>_kMEfilt.txt`
-   - Type: Node Table; map `node` column to node names
-3. Style nodes by `kME`, `GeneSignificance`, or `DE_status` columns
 
 ---
 
