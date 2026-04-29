@@ -1,4 +1,4 @@
-name: wgcna_galaxy_v2
+name: wgcna_galaxy
 channels:
   - conda-forge
   - bioconda
@@ -8,7 +8,7 @@ dependencies:
   - r-base>=4.3.0
 
   # ── WGCNA and Bioconductor core ─────────────────────────────────────────
-  - bioconductor-wgcna=1.74
+  - r-wgcna=1.74
   - bioconductor-limma>=3.56.0
   - bioconductor-impute>=1.74.0
   - bioconductor-preprocesscore>=1.62.0
