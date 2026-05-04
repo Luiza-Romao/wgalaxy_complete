@@ -239,12 +239,6 @@ For preservation testing, use the same script and treat one dataset as reference
 **No modules at correlation threshold**
 → Lower `cor_threshold` (e.g. to 0.4). Biological signal may be weaker.
 
-**GO enrichment: 0 terms found**
-→ Verify `gene_id_type` matches your row names exactly (try SYMBOL vs ENSEMBL).
-→ Check that the OrgDb package covers your organism.
-
-**KEGG enrichment fails**
-→ Requires internet access. Check KEGG organism code at https://www.genome.jp/kegg/catalog/org_list.html
 
 **Preservation very slow**
 → Reduce `pres_n_perms` to 100 or `pres_max_genes` to 1000.
@@ -262,4 +256,3 @@ If you use this tool, please cite:
 
 > Langfelder P, Luo R, Oldham MC, Horvath S. **Is my network module preserved and reproducible?** *PLoS Computational Biology* 2011, **7**(1):e1001057.
 
-> Yu G et al. **clusterProfiler: a universal enrichment tool for interpreting omics data**. *The Innovation* 2021, **2**(3):100141.
