@@ -3,7 +3,6 @@
 **Weighted Gene Co-expression Network Analysis** for the Galaxy bioinformatics platform.
 
 **Recent improvements:**
-- ✅ Gene Ontology / functional enrichment analysis on WGCNA modules (clusterProfiler)
 - ✅ Module preservation / Z-summary to compare networks between conditions or organisms
 
 ---
@@ -39,11 +38,7 @@ Add to `tool_conf.xml`:
 ```bash
 conda env create -f wgcna_galaxy/conda_environment.yml
 ```
-For additional OrgDb packages (e.g. rat, yeast, zebrafish):
-```bash
-conda activate wgcna_galaxy_v2
-Rscript -e "BiocManager::install(c('org.Rn.eg.db','org.Sc.sgd.db','org.Dr.eg.db'))"
-```
+
 
 ### 4. Restart Galaxy
 
@@ -103,8 +98,7 @@ INPUT: VST matrix + sample metadata
    ├─ 11. Cytoscape export (edge + node tables)
    ├─ 12. Selected module heatmap
    ├─ 13. DEG overlap analysis             [OPTIONAL]
-   ├─ 14. GO / KEGG enrichment             [OPTIONAL]
-   └─ 15. Module preservation / Z-summary  [OPTIONAL]
+   └─ 14. Module preservation / Z-summary  [OPTIONAL]
 ```
 
 ---
@@ -137,8 +131,6 @@ INPUT: VST matrix + sample metadata
 | Hub genes | Connectivity vs kME |
 | Selected heatmap | High-correlation modules only |
 | DEG barplot | Up/down DEGs per network module |
-| **GO dot plot** | Top GO-BP terms, dot-sized by gene count |
-| **GO bar plot** | Enrichment by –log10(p.adj) |
 | **Z-summary scatter** | Preservation score per module |
 | **Preservation heatmap** | Zsummary, Zdensity, Zconnectivity |
 
@@ -164,51 +156,6 @@ INPUT: VST matrix + sample metadata
 - `wgcna_results.RData` — All R objects for downstream custom analysis
 - Analysis log — stdout/stderr
 
----
-### Gene Ontology (GO) clusterProfiler
-
-### What it does
-Runs `enrichGO()` (clusterProfiler) across all three GO ontologies
-(Biological Process, Molecular Function, Cellular Component) and optionally
-`enrichKEGG()` for each module that passes the correlation threshold.
-
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| OrgDb package | — | Bioconductor annotation DB for your organism |
-| Gene ID type | SYMBOL | Must match your expression matrix row names |
-| KEGG enrichment | No | Run KEGG in addition to GO |
-| KEGG organism code | — | 3-letter code e.g. `hsa`, `mmu`, `ath`, `sce` |
-| Adjusted p-value cutoff | 0.05 | BH-corrected significance threshold |
-| q-value cutoff | 0.20 | Additional q-value filter |
-| Min gene-set size | 10 | Discard very small GO terms |
-| Max gene-set size | 500 | Discard very large GO terms |
-
-### Supported organisms (OrgDb)
-
-| Organism | Package |
-|----------|---------|
-| Homo sapiens | org.Hs.eg.db |
-| Mus musculus | org.Mm.eg.db |
-| Rattus norvegicus | org.Rn.eg.db |
-| Arabidopsis thaliana | org.At.tair.db |
-| Saccharomyces cerevisiae | org.Sc.sgd.db |
-| Caenorhabditis elegans | org.Ce.eg.db |
-| Drosophila melanogaster | org.Dm.eg.db |
-| Danio rerio | org.Dr.eg.db |
-| Sus scrofa | org.Ss.eg.db |
-| Bos taurus | org.Bt.eg.db |
-| Gallus gallus | org.Gg.eg.db |
-| Custom | Any OrgDb in the "custom" field |
-
-### Outputs
-- `table_go_summary.tsv` — all significant GO terms across all modules and ontologies
-- `enrichment_output/GO_BP_<module>.tsv` — per-module GO-BP results
-- `enrichment_output/GO_MF_<module>.tsv` — per-module GO-MF results
-- `enrichment_output/GO_CC_<module>.tsv` — per-module GO-CC results
-- `enrichment_output/KEGG_<module>.tsv` — per-module KEGG results (if enabled)
-- `plot_go_dotplot.png` — dot plot (top 8 BP terms per module, faceted)
-- `plot_go_barplot.png` — bar plot (–log10 p.adj per module, faceted)
 
 ---
 
