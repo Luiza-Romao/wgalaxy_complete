@@ -1,7 +1,15 @@
-sample	condition	group
-sample1	control	A
-sample2	control	A
-sample3	treatment	B
-sample4	treatment	B
-sample5	control	A
-EOF
+SampleID	Treatment
+SRR13870433	ShortDay
+SRR13870434	ShortDay
+SRR13870435	ShortDay
+SRR13870441	ShortDay
+SRR13870442	ShortDay
+SRR13870443	ShortDay
+SRR13870444	ShortDay
+SRR13870436	RegularDay
+SRR13870437	RegularDay
+SRR13870438	RegularDay
+SRR13870439	RegularDay
+SRR13870440	RegularDay
+SRR13870445	RegularDay
+SRR13870446	RegularDay
