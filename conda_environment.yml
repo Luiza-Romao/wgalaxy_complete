@@ -4,33 +4,24 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  # ── R base ──────────────────────────────────────────────────────────────
-  - r-base>=4.3.0
+  # ── R base ───────────────────────────────────────────────────────────────
+  # Pinned to 4.4 to match Bioconductor 3.20
+  - r-base=4.4
 
-  # ── WGCNA and Bioconductor core ─────────────────────────────────────────
+  # ── WGCNA core ───────────────────────────────────────────────────────────
   - r-wgcna=1.74
-  - bioconductor-limma>=3.56.0
-  - bioconductor-impute>=1.74.0
-  - bioconductor-preprocesscore>=1.62.0
-  - bioconductor-go.db>=3.17.0
-  - bioconductor-annotationdbi>=1.62.0
 
-  # ── Enrichment (NEW) ─────────────────────────────────────────────────────
-  - bioconductor-clusterprofiler>=4.8.0
-  - bioconductor-enrichplot>=1.20.0
-  - bioconductor-dose>=3.26.0
-  # Common OrgDb packages — install the one(s) matching your organism
-  # Users can add more with: conda install bioconductor-org.Hs.eg.db
-  - bioconductor-org.hs.eg.db>=3.17.0   # Homo sapiens
-  - bioconductor-org.mm.eg.db>=3.17.0   # Mus musculus
-  - bioconductor-org.at.tair.db>=3.17.0 # Arabidopsis thaliana
+  # ── Bioconductor 3.20 dependencies (R 4.4) ───────────────────────────────
+  - bioconductor-limma=3.62.1
+  - bioconductor-impute=1.80.0
+  - bioconductor-preprocesscore=1.68.0
 
   # ── CRAN packages ────────────────────────────────────────────────────────
-  - r-ggplot2>=3.4.0
-  - r-ggrepel>=0.9.3
-  - r-reshape2>=1.4.4
-  - r-pheatmap>=1.0.12
-  - r-igraph>=1.5.0
-  - r-rcolorbrewer>=1.1-3
-  - r-optparse>=1.7.3
-  - r-fastcluster>=1.2.6
+  - r-ggplot2=3.5.1
+  - r-ggrepel=0.9.6
+  - r-reshape2=1.4.4
+  - r-pheatmap=1.0.12
+  - r-igraph=2.1.1
+  - r-rcolorbrewer=1.1_3
+  - r-optparse=1.7.5
+  - r-fastcluster=1.2.6
