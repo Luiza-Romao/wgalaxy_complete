@@ -414,7 +414,7 @@ If you use this tool in your research, please cite:
 **This tool:**
 > Romão, L. O. & Vicentini, R. (2026). WGCNA Galaxy Tool.
 > GitHub: https://github.com/Luiza-Romao/wgalaxy_complete
-> DOI: [Zenodo DOI]
+> [![DOI](https://zenodo.org/badge/1198684285.svg)](https://doi.org/10.5281/zenodo.20057034)
 
 **WGCNA R package:**
 > Langfelder P, Horvath S. WGCNA: an R package for weighted gene co-expression
