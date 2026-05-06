@@ -47,7 +47,7 @@ companion tool at: https://github.com/Luiza-Romao/go-enrichment-galaxy
 | `macros.xml` | Reusable XML macros (requirements, parameter sections) |
 | `wgcna.R` | Main R analysis script |
 | `conda_environment.yml` | Reproducible conda environment with pinned dependencies |
-| `generate_test_data.R` | Generates minimal test datasets for local validation |
+| `create_test_subset.R` | R script that generates minimal test datasets for local validation | Utils directory
 | `BUGS.md` | Development bug log with root causes and fixes |
 | `CHANGELOG.md` | Version history |
 
