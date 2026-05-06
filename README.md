@@ -134,6 +134,27 @@ Restart Galaxy after registering the tool.
 
 ---
 
+## Generating test data
+
+Follow the steps to generate a VST matrix with 300 genes from *Saccharum spp.* to test the tool.
+Open the directory test-data to have more information.
+
+```bash
+Rscript generate_test_data.R # Find this file at the docs directory
+```
+
+This script writes two files to `test-data/`:
+
+```
+test-data/test_vst.tabular
+test-data/test_samples.tabular
+```
+
+For preservation testing, use the main VST matrix as the query and a second
+dataset or a subsampled version as the reference.
+
+---
+
 ## Input formats
 
 ### VST expression matrix (required)
@@ -332,24 +353,6 @@ related species such as sugarcane and sorghum.
    Select Node Table and map the `node` column to node names.
 4. Apply a layout such as **Layout > Prefuse Force Directed**.
 5. Style nodes using the `kME` or `GeneSignificance` columns for visual encoding.
-
----
-
-## Generate test data
-
-```bash
-Rscript generate_test_data.R # Find this file at the docs directory
-```
-
-This script writes two files to `test-data/`:
-
-```
-test-data/test_vst.tabular
-test-data/test_samples.tabular
-```
-
-For preservation testing, use the main VST matrix as the query and a second
-dataset or a subsampled version as the reference.
 
 ---
 
