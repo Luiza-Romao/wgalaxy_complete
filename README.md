@@ -140,7 +140,7 @@ Follow the steps to generate a VST matrix with 300 genes from *Saccharum spp.* t
 Open the directory test-data to have more information.
 
 ```bash
-Rscript generate_test_data.R # Find this file at the docs directory
+Rscript create_test_subset.R # Find this file at the utils directory
 ```
 
 This script writes two files to `test-data/`:
