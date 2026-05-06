@@ -89,8 +89,7 @@ cd wgalaxy_complete
 ### 2. Create the conda environment
 
 ```bash
-conda env create -f conda_environment.yml
-conda activate wgcna_galaxy
+conda env create -n wgcna_galaxy -f conda_environment.yml
 ```
 
 ### 3. Test locally with Planemo
@@ -99,7 +98,7 @@ Before deploying to a production Galaxy instance, validate the tool in a local
 simulated Galaxy environment using Planemo:
 
 ```bash
-conda activate planemo_env
+conda activate wgcna_galaxy
 planemo serve --port 8081
 ```
 
@@ -339,16 +338,14 @@ related species such as sugarcane and sorghum.
 ## Generate test data
 
 ```bash
-Rscript generate_test_data.R
+Rscript generate_test_data.R # Find this file at the docs directory
 ```
 
-This script writes four files to `test-data/`:
+This script writes two files to `test-data/`:
 
 ```
 test-data/test_vst.tabular
 test-data/test_samples.tabular
-test-data/test_up_degs.tabular
-test-data/test_down_degs.tabular
 ```
 
 For preservation testing, use the main VST matrix as the query and a second
