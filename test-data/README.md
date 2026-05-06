@@ -48,3 +48,5 @@ Rscript create_test_subset.R \
 
 The script selects genes deterministically given the fixed random seed (42)
 and produces identical output on any machine with the same input data.
+
+You cand find the Rscript create_test_subset.R at the utils directory.
