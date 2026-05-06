@@ -110,7 +110,7 @@ development and testing.
 
 ```bash
 Rscript -e "parse('wgcna.R'); cat('Syntax OK\n')"
-Rscript generate_test_data.R
+Rscript create_test_subset.R
 planemo test wgcna.xml
 ```
 
