@@ -229,7 +229,11 @@ if (length(keep_mods) > 0) {
     row.names=FALSE, quote=FALSE
   )
 
-  png(opt$out_plot_heatmap_sel, width=800, height=600, res=120)
+  png(opt$out_plot_heatmap_sel, width=1100, height=700, res=120)
+  # Generous left margin so long module names (e.g. "palevioletred1",
+  # "lightsteelblue", "darkseagreen3") are not truncated.
+  # mar = c(bottom, left, top, right)
+  par(mar=c(5, 9, 4, 2))
   labeledHeatmap(Matrix=sel_cor, xLabels=colnames(trait_data),
                  yLabels=rownames(sel_cor),
                  colors=blueWhiteRed(50),
@@ -366,6 +370,32 @@ if (!is.na(top_module)) {
 
 # --- STEP 10 & 11: kME filtering + Cytoscape export ---------------------
 log_msg("STEP 11: Cytoscape network export")
+
+# Pre-load DEG lists once (used to annotate node files with DE_status).
+# Re-uses the same option flags that are used later in STEP 13.
+.deg_up   <- character(0)
+.deg_down <- character(0)
+if (opt$up_degs != "None" && file.exists(opt$up_degs)) {
+  .x <- read.table(opt$up_degs, header=FALSE, sep="\t",
+                   stringsAsFactors=FALSE, fill=TRUE, comment.char="")
+  if (nrow(.x) > 0 && tolower(.x[1, 1]) %in%
+      c("gene", "geneid", "id", "gene_id", "name", "symbol")) {
+    .x <- .x[-1, , drop=FALSE]
+  }
+  .deg_up <- unique(as.character(.x[, 1]))
+}
+if (opt$down_degs != "None" && file.exists(opt$down_degs)) {
+  .x <- read.table(opt$down_degs, header=FALSE, sep="\t",
+                   stringsAsFactors=FALSE, fill=TRUE, comment.char="")
+  if (nrow(.x) > 0 && tolower(.x[1, 1]) %in%
+      c("gene", "geneid", "id", "gene_id", "name", "symbol")) {
+    .x <- .x[-1, , drop=FALSE]
+  }
+  .deg_down <- unique(as.character(.x[, 1]))
+}
+log_msg("  DEG lists loaded for node annotation: up =", length(.deg_up),
+        "| down =", length(.deg_down))
+
 if (length(keep_mods) > 0) {
   sel_modules_clean <- gsub("^ME", "", keep_mods)
   log_msg("Exporting Cytoscape networks for", length(sel_modules_clean),
@@ -415,11 +445,57 @@ if (length(keep_mods) > 0) {
     node_file <- file.path(opt$out_cytoscape_dir,
                            paste0("nodes_", mod, ".txt"))
 
+    # exportNetworkToCytoscape writes the edges file in the format Cytoscape
+    # expects. We let it write a simple node file too, then OVERWRITE that
+    # node file with our enriched version below.
     exportNetworkToCytoscape(TOM_mod,
                              edgeFile=edge_file, nodeFile=node_file,
                              weighted=TRUE, threshold=tom_cut,
                              nodeNames=mod_genes,
                              nodeAttr=rep(mod, length(mod_genes)))
+
+    # ── Build enriched node table ───────────────────────────────────────
+    # Intramodular connectivity for the kME-filtered subset of this module.
+    # Note: kIM is computed on the same subset of genes that goes to
+    # Cytoscape, so values reflect connectivity within the exported network.
+    kIM_mod <- rowSums(adj_mod) - 1   # subtract self-connection
+
+    # Module Membership and Gene Significance for this module's genes
+    mm_vals <- gene_module_membership[mod_genes_idx, mm_col]
+    gs_vals <- gene_trait_significance[mod_genes_idx, 1]
+
+    # Hub flag: top 10% by intramodular connectivity (min 5 hubs)
+    n_hubs_mod <- max(5, ceiling(0.10 * length(mod_genes)))
+    hub_rank   <- rank(-kIM_mod, ties.method="first")
+    is_hub_vec <- ifelse(hub_rank <= n_hubs_mod, "yes", "no")
+
+    # DE status: up / down / not_DE
+    de_status <- ifelse(mod_genes %in% .deg_up,   "up",
+                 ifelse(mod_genes %in% .deg_down, "down", "not_DE"))
+
+    nodes_df <- data.frame(
+      nodeName         = mod_genes,
+      Module           = mod,
+      Connectivity     = round(as.numeric(kIM_mod), 6),
+      ModuleMembership = round(as.numeric(mm_vals), 6),
+      GeneSignificance = round(as.numeric(gs_vals), 6),
+      isHub            = is_hub_vec,
+      DE_status        = de_status,
+      stringsAsFactors = FALSE
+    )
+
+    # Sort by connectivity (highest first) — convenient when opening in Cytoscape
+    nodes_df <- nodes_df[order(-nodes_df$Connectivity), ]
+
+    write.table(nodes_df, file=node_file, sep="\t",
+                row.names=FALSE, quote=FALSE)
+
+    log_msg("  ", mod, ": exported",
+            length(mod_genes), "nodes (",
+            sum(de_status == "up"),   "up,",
+            sum(de_status == "down"), "down,",
+            sum(de_status == "not_DE"), "not DE )")
+
     exported <- exported + 1
   }
   log_msg("Cytoscape networks written:", exported)
