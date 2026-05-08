@@ -551,19 +551,36 @@ if (has_degs) {
   write.table(deg_summary, file=opt$out_table_deg_summary,
               sep="\t", row.names=FALSE, quote=FALSE)
 
+  # Show only modules with at least one DEG. With many modules (~80) the
+  # long tail of zero-DEG modules carries no information and produces
+  # illegible label overlap. Order by total DEGs (descending).
   m_long <- reshape2::melt(
     deg_summary[, c("Module", "Up_DEGs", "Down_DEGs")],
     id.vars="Module", variable.name="Direction", value.name="Count")
-  m_long$Module <- factor(m_long$Module, levels=deg_summary$Module)
 
-  png(opt$out_plot_deg_bar, width=1000, height=700, res=120)
+  modules_with_degs <- deg_summary$Module[deg_summary$Total_DEGs > 0]
+  m_long <- m_long[m_long$Module %in% modules_with_degs, ]
+  m_long$Module <- factor(m_long$Module, levels=modules_with_degs)
+
+  # Adaptive canvas: wider when more modules have DEGs.
+  n_mods_plot  <- length(modules_with_degs)
+  fig_w        <- max(900, 90 * n_mods_plot + 250)
+  subtitle_txt <- paste0("Showing ", n_mods_plot,
+                         " modules with at least one DEG (of ",
+                         nrow(deg_summary), " total modules)")
+
+  png(opt$out_plot_deg_bar, width=fig_w, height=700, res=120)
   p <- ggplot(m_long, aes(x=Module, y=Count, fill=Direction)) +
     geom_bar(stat="identity", position="stack") +
-    scale_fill_manual(values=c(Up_DEGs="#d73027", Down_DEGs="#4575b4")) +
-    theme_bw() +
-    theme(axis.text.x=element_text(angle=45, hjust=1)) +
+    scale_fill_manual(values=c(Up_DEGs="#d73027", Down_DEGs="#4575b4"),
+                      labels=c(Up_DEGs="Up", Down_DEGs="Down")) +
+    theme_bw(base_size=11) +
+    theme(axis.text.x      = element_text(angle=45, hjust=1, size=9),
+          plot.subtitle    = element_text(size=9, color="grey40"),
+          panel.grid.minor.x = element_blank()) +
     labs(title="DEG distribution per module",
-         x="Module", y="DEG count")
+         subtitle=subtitle_txt,
+         x="Module", y="DEG count", fill="Direction")
   print(p)
   dev.off()
 } else {
@@ -611,11 +628,24 @@ if (opt$run_preservation == "yes") {
     if (length(z_cols) > 1) {
       z_mat <- as.matrix(stats[, z_cols, drop=FALSE])
       z_mat[z_mat > 30] <- 30                # cap extreme values for display
-      png(opt$out_plot_pres_heatmap, width=900, height=700, res=120)
+
+      # Adaptive height: scale with number of modules so row labels never
+      # overlap. ~14 px per module row, plus margins for header and column
+      # labels. Width also adapts to the number of Z-statistics columns.
+      n_rows_pres <- nrow(z_mat)
+      pres_h <- max(700, 14 * n_rows_pres + 250)
+      pres_w <- max(900, 60 * length(z_cols) + 250)
+
+      png(opt$out_plot_pres_heatmap, width=pres_w, height=pres_h, res=120)
       pheatmap(z_mat, main="Module Preservation Z-statistics",
                cluster_rows=FALSE, cluster_cols=FALSE,
                color=colorRampPalette(c("white", "yellow", "red"))(50),
-               border_color=NA, fontsize=9)
+               border_color=NA,
+               fontsize=9,
+               fontsize_row=7,
+               fontsize_col=10,
+               cellheight=11,    # fixed row height prevents overlap
+               cellwidth=NA)     # let columns auto-fit the canvas
       dev.off()
     } else {
       placeholder_png(opt$out_plot_pres_heatmap,
