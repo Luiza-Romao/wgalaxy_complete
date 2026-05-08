@@ -95,7 +95,9 @@ conda env create -n wgcna_galaxy -f conda_environment.yml
 ### 3. Test locally with Planemo
 
 Before deploying to a production Galaxy instance, validate the tool in a local
-simulated Galaxy environment using Planemo:
+simulated Galaxy environment using Planemo.
+
+Check [here](https://planemo.readthedocs.io/en/latest/installation.html) how to install Planemo.
 
 ```bash
 conda activate wgcna_galaxy
